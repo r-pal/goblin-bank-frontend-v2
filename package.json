@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "sync:assets": "node scripts/sync-asset-paths.mjs",
+    "predev": "npm run sync:assets",
+    "prebuild": "npm run sync:assets",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },

@@ -1,19 +1,15 @@
-import { useEffect, useLayoutEffect, useMemo, useState, type RefObject } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useMemo, useState } from "react";
+import { ADVERT_URLS } from "../constants/advertPaths";
+import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./AdvertBoard.module.css";
 
 const ADVERT_INTERVAL_MS = 10_000;
-const FULLSCREEN_ADVERT_PATH = "/adverts/MAP 2.jpg";
 
 function isFullscreenAdvert(url: string): boolean {
-  try {
-    return decodeURIComponent(url) === FULLSCREEN_ADVERT_PATH;
-  } catch {
-    return url.includes("MAP%202.jpg") || url.includes("MAP 2.jpg");
-  }
+  return /MAP(\s|%20)?2\.jpg$/i.test(url);
 }
 
-function shuffle<T>(items: T[]): T[] {
+function shuffle<T>(items: readonly T[]): T[] {
   const out = [...items];
   for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -31,35 +27,15 @@ function pickRandomIndex(length: number, exclude: number): number {
   return next;
 }
 
-function loadAdvertUrls(): string[] {
-  // Public dir assets are served at /adverts/*
-  const modules = import.meta.glob("/public/adverts/*.{png,jpg,jpeg,webp}", {
-    eager: true,
-    as: "url",
-  }) as Record<string, string>;
-
-  return Object.entries(modules)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([path]) => path.replace(/^\/public/, ""));
-}
-
-type Props = {
-  portalRef?: RefObject<HTMLElement | null>;
-};
-
-export function AdvertBoard({ portalRef }: Props) {
-  const urls = useMemo(() => shuffle(loadAdvertUrls()), []);
-  const [idx, setIdx] = useState(() =>
-    urls.length > 0 ? Math.floor(Math.random() * urls.length) : 0,
+export function AdvertBoard() {
+  // Exclude the fullscreen map from the rotating panel.
+  const urls = useMemo(
+    () => shuffle(ADVERT_URLS.filter((u) => !isFullscreenAdvert(u))),
+    [],
   );
+  const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(false);
   const currentUrl = urls[idx] ?? "";
-  const fullscreen = isFullscreenAdvert(currentUrl);
-  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
-
-  useLayoutEffect(() => {
-    setPortalRoot(portalRef?.current ?? null);
-  }, [portalRef, fullscreen]);
 
   useEffect(() => {
     if (urls.length <= 1) return;
@@ -73,37 +49,29 @@ export function AdvertBoard({ portalRef }: Props) {
     return () => window.clearInterval(id);
   }, [urls]);
 
-  if (urls.length === 0) return null;
-
-  const imageClass = fade ? styles.imageFade : styles.image;
-
-  const image = (
-    <img
-      key={currentUrl}
-      className={imageClass}
-      src={currentUrl}
-      alt=""
-      loading="eager"
-    />
-  );
-
-  if (fullscreen && portalRoot) {
-    return createPortal(
-      <div className={styles.fullscreen} aria-label="Adverts">
-        {image}
-      </div>,
-      portalRoot,
+  if (urls.length === 0) {
+    return (
+      <div className={styles.root} aria-label="Adverts">
+        <p className={styles.empty}>
+          No adverts in <code>public/assets/adverts/</code>. Add images and run{" "}
+          <code>npm run sync:assets</code>.
+        </p>
+      </div>
     );
   }
 
-  if (fullscreen) {
-    return null;
-  }
+  const imageClass = fade ? styles.imageFade : styles.image;
 
   return (
     <div className={styles.root} aria-label="Adverts">
-      {image}
+      <img
+        key={currentUrl}
+        className={imageClass}
+        src={publicAssetSrc(currentUrl)}
+        alt=""
+        loading="eager"
+        decoding="async"
+      />
     </div>
   );
 }
-

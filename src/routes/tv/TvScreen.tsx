@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { client } from "../../api/client";
 import type { HistoryResponse, MarketResponse } from "../../api/types";
 import { AdvertBoard } from "../../components/AdvertBoard";
@@ -15,7 +15,6 @@ const GRAPH_CYCLE_MS = 120_000;
 const GRAPH_SHOW_MS = 18_000;
 
 export function TvScreen() {
-  const rootRef = useRef<HTMLDivElement>(null);
   const [market, setMarket] = useState<MarketResponse | null>(null);
   const [marketErr, setMarketErr] = useState<string | null>(null);
 
@@ -93,7 +92,7 @@ export function TvScreen() {
   const hasWareHistory = (histWares?.series ?? []).some((s) => s.points.length > 0);
 
   return (
-    <div ref={rootRef} className={styles.root}>
+    <div className={styles.root}>
       <TvGraphToggle showGraph={showGraph} onToggle={() => void onToggleGraph()} />
 
       <div className={styles.p5}>
@@ -127,7 +126,7 @@ export function TvScreen() {
               </div>
             </div>
           ) : (
-            <AdvertBoard portalRef={rootRef} />
+            <AdvertBoard />
           )}
         </div>
 

@@ -8,7 +8,7 @@ Two routes:
 Adverts and media are **frontend-only** assets in `public/`:
 
 - `public/adverts/`: advert images (`.png`, `.jpg`, `.webp`, `.svg`), rotated every 10 seconds (random order)
-- `public/tv-float/`: images that drift in the TV background (theme-tinted like the main goblin)
+- `public/assets/tv-float/`: drifting background images at `/assets/tv-float/<file>` (run `npm run sync:tv-float` after add/remove)
 - `public/music/`: music files (note: browsers may block autoplay until the first user interaction)
 
 ## Backend

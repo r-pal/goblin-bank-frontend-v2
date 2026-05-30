@@ -1,18 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { TV_FLOAT_URLS } from "../constants/tvFloatPaths";
+import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./TvBackgroundFloats.module.css";
-
-function loadFloatUrls(): string[] {
-  // Glob must target public/ — "/tv-float/*" resolves to project root, not public/tv-float.
-  const modules = import.meta.glob("/public/tv-float/*.{png,jpg,jpeg,webp,svg}", {
-    eager: true,
-    as: "url",
-  }) as Record<string, string>;
-
-  return Object.entries(modules)
-    .filter(([path]) => !path.includes(".gitkeep"))
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([path]) => path.replace(/^\/public/, ""));
-}
 
 type Sprite = {
   x: number;
@@ -25,7 +14,7 @@ type Sprite = {
   url: string;
 };
 
-function createSprites(urls: string[], width: number, height: number): Sprite[] {
+function createSprites(urls: readonly string[], width: number, height: number): Sprite[] {
   if (urls.length === 0 || width <= 0 || height <= 0) return [];
 
   const count = Math.min(16, Math.max(10, urls.length * 3));
@@ -57,7 +46,7 @@ function stepSprite(s: Sprite, width: number, height: number): Sprite {
 }
 
 export function TvBackgroundFloats() {
-  const urls = useMemo(() => loadFloatUrls(), []);
+  const urls = TV_FLOAT_URLS;
   const layerRef = useRef<HTMLDivElement>(null);
   const boundsRef = useRef({ width: 0, height: 0 });
   const [sprites, setSprites] = useState<Sprite[]>([]);
@@ -110,12 +99,11 @@ export function TvBackgroundFloats() {
             transform: `translate3d(${s.x}px, ${s.y}px, 0) rotate(${s.rot}rad)`,
           }}
         >
-          <div
-            className={styles.figure}
-            style={{
-              WebkitMaskImage: `url("${s.url}")`,
-              maskImage: `url("${s.url}")`,
-            }}
+          <img
+            className={styles.floatImg}
+            src={publicAssetSrc(s.url)}
+            alt=""
+            draggable={false}
           />
         </div>
       ))}
