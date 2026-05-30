@@ -54,10 +54,10 @@ html[data-theme="night"] {
   --bg-gradient: linear-gradient(
     180deg,
     #0a0418 0%,
-    #1a0832 38%,
-    #2a0f4a 62%,
-    #4a1868 82%,
-    #ff6b35 96%,
+    #1a0832 18%,
+    #2a0f4a 42%,
+    #4a1868 62%,
+    #ff6b35 76%,
     #ffb347 100%
   );
   --text: #f8e8ff;

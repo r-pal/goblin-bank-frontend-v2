@@ -2,12 +2,12 @@
 /** Root-relative URLs for files in public/assets/panels/ */
 export const ADVERT_URLS: readonly string[] = [
   "/assets/panels/bookies.png",
-  "/assets/panels/Goblin_Market_002.jpg",
-  "/assets/panels/Goblin_Market_012.jpg",
-  "/assets/panels/Goblin_Market_032.jpg",
-  "/assets/panels/Goblin_Market_044.jpg",
+  "/assets/panels/grem1.png",
+  "/assets/panels/gremlin.png",
+  "/assets/panels/hex.png",
   "/assets/panels/keys.png",
   "/assets/panels/MAP 2.jpg",
+  "/assets/panels/mm.png",
   "/assets/panels/mmt.png",
   "/assets/panels/motto.png",
   "/assets/panels/tubs.png",

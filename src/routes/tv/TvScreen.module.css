@@ -108,16 +108,17 @@ html[data-theme="night"] .root::after {
 }
 
 .graphOverlay {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  inset: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: 2px;
   background: rgba(6, 12, 32, 0.88);
-  border: 10px solid #ffffff;
+  border: 8px solid #ffffff;
   backdrop-filter: blur(8px);
+  overflow: hidden;
 }
 
 html[data-theme="night"] .graphOverlay {
@@ -139,32 +140,34 @@ html[data-theme="day"] .tickers {
 .graphStack {
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(10px, 1.2vmin, 20px);
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(6px, 0.8vmin, 14px);
 }
 
 .graphSection {
-  flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .chartBody {
   flex: 1;
   min-height: 0;
+  position: relative;
 }
 
 .graphTitle {
   font-family: var(--font-display);
-  font-size: clamp(24px, 2.8vmin, 42px);
+  font-size: clamp(18px, 2vmin, 32px);
   font-weight: 600;
   opacity: 0.95;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+  line-height: 1.1;
 }
 
 .graphEmpty {

@@ -171,8 +171,12 @@ export function HistoryChart({
   const tickFont = isTv ? tvFont : 12;
   const yWidth = isTv ? Math.round(tvFont * 3.8) : 60;
   const strokeWidth = isTv ? 4.5 : 2;
-  const legendRowH = isTv ? Math.round(tvFont * 1.35) : 22;
-  const legendHeight = isTv ? Math.min(320, 16 + labels.length * legendRowH) : 36;
+  const manySeries = labels.length > 3;
+  const legendFont = isTv && manySeries ? Math.max(18, Math.round(tvFont * 0.52)) : tickFont;
+  const legendRowH = isTv ? Math.round(legendFont * 1.15) : 22;
+  const legendRows = isTv ? Math.ceil(labels.length / 3) : 1;
+  const legendHeight = isTv ? Math.min(96, 8 + legendRows * legendRowH) : 36;
+  const legendOnTop = isTv;
 
   const rootStyle = fill ? undefined : { height };
   const rootClass = fill ? `${styles.fill} ${styles.root}` : undefined;
@@ -188,10 +192,10 @@ export function HistoryChart({
         <LineChart
           data={chartData}
           margin={{
-            top: isTv ? 16 : 8,
-            right: isTv ? 24 : 12,
-            bottom: isTv ? legendHeight + 12 : 8,
-            left: isTv ? 12 : 4,
+            top: legendOnTop ? legendHeight + 10 : isTv ? 12 : 8,
+            right: isTv ? 16 : 12,
+            bottom: legendOnTop ? (isTv ? 16 : 8) : isTv ? legendHeight + 12 : 8,
+            left: isTv ? 8 : 4,
           }}
         >
           <XAxis
@@ -223,17 +227,18 @@ export function HistoryChart({
           />
           {isTv ? (
             <Legend
-              verticalAlign="bottom"
+              verticalAlign={legendOnTop ? "top" : "bottom"}
               align="center"
               iconType="line"
-              iconSize={Math.round(tvFont * 0.75)}
+              iconSize={Math.round(legendFont * 0.7)}
               wrapperStyle={{
                 color: "var(--text)",
                 fontFamily: "var(--font-display)",
-                fontSize: tvFont,
+                fontSize: legendFont,
                 fontWeight: 600,
-                lineHeight: 1.35,
-                paddingTop: 10,
+                lineHeight: 1.15,
+                paddingTop: legendOnTop ? 0 : 6,
+                paddingBottom: legendOnTop ? 4 : 0,
               }}
             />
           ) : null}

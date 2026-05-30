@@ -1,22 +1,46 @@
 import styles from "./TvGraphToggle.module.css";
 
+export type TvPanelMode = "adverts" | "graph" | "map" | "auto";
+
+export type TvPanelView = "adverts" | "graph" | "map";
+
 type Props = {
-  showGraph: boolean;
-  onToggle: () => void;
+  mode: TvPanelMode;
+  /** Which view is on screen (during auto, follows the cycle). */
+  activeView: TvPanelView;
+  onModeChange: (mode: TvPanelMode) => void;
 };
 
-export function TvGraphToggle({ showGraph, onToggle }: Props) {
-  const label = showGraph ? "Adverts" : "Graph";
+const VIEWS: { id: TvPanelView; label: string }[] = [
+  { id: "adverts", label: "Adverts" },
+  { id: "graph", label: "Graph" },
+  { id: "map", label: "Map" },
+];
+
+export function TvGraphToggle({ mode, activeView, onModeChange }: Props) {
+  const autoOn = mode === "auto";
 
   return (
-    <button
-      type="button"
-      className={styles.button}
-      aria-label={showGraph ? "Show adverts" : "Show history graphs"}
-      aria-pressed={showGraph}
-      onClick={onToggle}
-    >
-      {label}
-    </button>
+    <div className={styles.bar} role="group" aria-label="Left panel view">
+      {VIEWS.map(({ id, label }) => (
+        <button
+          key={id}
+          type="button"
+          className={styles.button}
+          aria-pressed={autoOn ? activeView === id : mode === id}
+          onClick={() => onModeChange(id)}
+        >
+          {label}
+        </button>
+      ))}
+      <button
+        type="button"
+        className={styles.button}
+        aria-pressed={autoOn}
+        onClick={() => onModeChange("auto")}
+      >
+        Auto
+      </button>
+    </div>
   );
 }

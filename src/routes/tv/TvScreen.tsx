@@ -4,26 +4,41 @@ import type { HistoryResponse, MarketResponse } from "../../api/types";
 import { AdvertBoard } from "../../components/AdvertBoard";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Tickertape } from "../../components/Tickertape";
-import { TvGraphToggle } from "../../components/TvGraphToggle";
+import {
+  TvGraphToggle,
+  type TvPanelMode,
+  type TvPanelView,
+} from "../../components/TvGraphToggle";
+import { TvMapPanel } from "../../components/TvMapPanel";
 import { WaresTickertape } from "../../components/WaresTickertape";
 import { TvBackgroundP5 } from "../../components/TvBackgroundP5";
 import { TvGoblinFloater } from "../../components/TvGoblinFloater";
 import styles from "./TvScreen.module.css";
 
 const MARKET_POLL_MS = 5_000;
-const GRAPH_CYCLE_MS = 120_000;
-const GRAPH_SHOW_MS = 18_000;
+const AUTO_CYCLE_MS = 30_000;
+
+const AUTO_SEQUENCE: readonly TvPanelView[] = ["adverts", "graph", "map"];
+
+function nextAutoView(current: TvPanelView): TvPanelView {
+  const i = AUTO_SEQUENCE.indexOf(current);
+  return AUTO_SEQUENCE[(i + 1) % AUTO_SEQUENCE.length]!;
+}
 
 export function TvScreen() {
   const [market, setMarket] = useState<MarketResponse | null>(null);
   const [marketErr, setMarketErr] = useState<string | null>(null);
 
-  const [graphPinned, setGraphPinned] = useState(false);
-  const [autoGraph, setAutoGraph] = useState(false);
+  const [panelMode, setPanelMode] = useState<TvPanelMode>("auto");
+  const [autoView, setAutoView] = useState<TvPanelView>("adverts");
   const [histAccounts, setHistAccounts] = useState<HistoryResponse | null>(null);
   const [histWares, setHistWares] = useState<HistoryResponse | null>(null);
 
-  const showGraph = graphPinned || autoGraph;
+  const activeView: TvPanelView = panelMode === "auto" ? autoView : panelMode;
+
+  const showGraph = activeView === "graph";
+  const showMap = activeView === "map";
+  const showAdverts = activeView === "adverts";
 
   const loadHistory = useCallback(async () => {
     try {
@@ -62,26 +77,22 @@ export function TvScreen() {
   }, []);
 
   useEffect(() => {
-    const id = window.setInterval(async () => {
-      if (graphPinned) return;
+    if (panelMode !== "auto") return;
 
-      setAutoGraph(true);
-      await loadHistory();
-      window.setTimeout(() => {
-        setAutoGraph(false);
-      }, GRAPH_SHOW_MS);
-    }, GRAPH_CYCLE_MS);
+    const id = window.setInterval(() => {
+      setAutoView((current) => nextAutoView(current));
+    }, AUTO_CYCLE_MS);
 
     return () => window.clearInterval(id);
-  }, [graphPinned, loadHistory]);
+  }, [panelMode]);
 
-  const onToggleGraph = async () => {
-    if (graphPinned) {
-      setGraphPinned(false);
-      return;
-    }
-    setGraphPinned(true);
-    await loadHistory();
+  useEffect(() => {
+    if (activeView === "graph") void loadHistory();
+  }, [activeView, loadHistory]);
+
+  const onPanelModeChange = (mode: TvPanelMode) => {
+    setPanelMode(mode);
+    if (mode === "auto") setAutoView("adverts");
   };
 
   const showMessages = (market?.messages?.length ?? 0) > 0;
@@ -93,7 +104,11 @@ export function TvScreen() {
 
   return (
     <div className={styles.root}>
-      <TvGraphToggle showGraph={showGraph} onToggle={() => void onToggleGraph()} />
+      <TvGraphToggle
+        mode={panelMode}
+        activeView={activeView}
+        onModeChange={onPanelModeChange}
+      />
 
       <div className={styles.p5}>
         <TvBackgroundP5 />
@@ -125,9 +140,11 @@ export function TvScreen() {
                 ) : null}
               </div>
             </div>
-          ) : (
+          ) : showMap ? (
+            <TvMapPanel />
+          ) : showAdverts ? (
             <AdvertBoard />
-          )}
+          ) : null}
         </div>
 
         <div className={styles.rightStrip}>

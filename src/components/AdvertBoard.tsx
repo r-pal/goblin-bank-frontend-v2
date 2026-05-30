@@ -1,13 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ADVERT_URLS } from "../constants/advertPaths";
+import { isMapPanelUrl } from "../constants/mapPanel";
 import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./AdvertBoard.module.css";
 
 const ADVERT_INTERVAL_MS = 10_000;
-
-function isFullscreenAdvert(url: string): boolean {
-  return /MAP(\s|%20)?2\.jpg$/i.test(url);
-}
 
 function shuffle<T>(items: readonly T[]): T[] {
   const out = [...items];
@@ -30,7 +27,7 @@ function pickRandomIndex(length: number, exclude: number): number {
 export function AdvertBoard() {
   // Exclude the fullscreen map from the rotating panel.
   const urls = useMemo(
-    () => shuffle(ADVERT_URLS.filter((u) => !isFullscreenAdvert(u))),
+    () => shuffle(ADVERT_URLS.filter((u) => !isMapPanelUrl(u))),
     [],
   );
   const [idx, setIdx] = useState(0);
