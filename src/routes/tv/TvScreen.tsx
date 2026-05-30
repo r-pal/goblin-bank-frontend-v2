@@ -1,0 +1,163 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { client } from "../../api/client";
+import type { HistoryResponse, MarketResponse } from "../../api/types";
+import { AdvertBoard } from "../../components/AdvertBoard";
+import { HistoryChart } from "../../components/HistoryChart";
+import { Tickertape } from "../../components/Tickertape";
+import { TvGraphToggle } from "../../components/TvGraphToggle";
+import { WaresTickertape } from "../../components/WaresTickertape";
+import { TvBackgroundP5 } from "../../components/TvBackgroundP5";
+import { TvGoblinFloater } from "../../components/TvGoblinFloater";
+import styles from "./TvScreen.module.css";
+
+const MARKET_POLL_MS = 5_000;
+const GRAPH_CYCLE_MS = 120_000;
+const GRAPH_SHOW_MS = 18_000;
+
+export function TvScreen() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [market, setMarket] = useState<MarketResponse | null>(null);
+  const [marketErr, setMarketErr] = useState<string | null>(null);
+
+  const [graphPinned, setGraphPinned] = useState(false);
+  const [autoGraph, setAutoGraph] = useState(false);
+  const [histAccounts, setHistAccounts] = useState<HistoryResponse | null>(null);
+  const [histWares, setHistWares] = useState<HistoryResponse | null>(null);
+
+  const showGraph = graphPinned || autoGraph;
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const [a, w] = await Promise.all([
+        client.getHistoryAccounts(),
+        client.getHistoryWares(),
+      ]);
+      setHistAccounts(a);
+      setHistWares(w);
+    } catch {
+      // Keep prior history if fetch fails.
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const tick = async () => {
+      try {
+        const next = await client.getMarket();
+        if (!cancelled) {
+          setMarket(next);
+          setMarketErr(null);
+        }
+      } catch (e) {
+        if (!cancelled) setMarketErr(e instanceof Error ? e.message : String(e));
+      }
+    };
+
+    tick();
+    const id = window.setInterval(tick, MARKET_POLL_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
+    const id = window.setInterval(async () => {
+      if (graphPinned) return;
+
+      setAutoGraph(true);
+      await loadHistory();
+      window.setTimeout(() => {
+        setAutoGraph(false);
+      }, GRAPH_SHOW_MS);
+    }, GRAPH_CYCLE_MS);
+
+    return () => window.clearInterval(id);
+  }, [graphPinned, loadHistory]);
+
+  const onToggleGraph = async () => {
+    if (graphPinned) {
+      setGraphPinned(false);
+      return;
+    }
+    setGraphPinned(true);
+    await loadHistory();
+  };
+
+  const showMessages = (market?.messages?.length ?? 0) > 0;
+  const showAccounts = (market?.accounts?.length ?? 0) > 0;
+  const showWares = (market?.wares?.length ?? 0) > 0;
+
+  const hasAccountHistory = (histAccounts?.series ?? []).some((s) => s.points.length > 0);
+  const hasWareHistory = (histWares?.series ?? []).some((s) => s.points.length > 0);
+
+  return (
+    <div ref={rootRef} className={styles.root}>
+      <TvGraphToggle showGraph={showGraph} onToggle={() => void onToggleGraph()} />
+
+      <div className={styles.p5}>
+        <TvBackgroundP5 />
+      </div>
+
+      <div className={styles.shell}>
+        <div className={styles.leftPanel}>
+          {showGraph ? (
+            <div className={styles.graphOverlay} aria-label="Graphs">
+              <div className={styles.graphStack}>
+                {hasAccountHistory && histAccounts ? (
+                  <div className={styles.graphSection}>
+                    <div className={styles.graphTitle}>Coin (accounts)</div>
+                    <div className={styles.chartBody}>
+                      <HistoryChart data={histAccounts} fill variant="tv" />
+                    </div>
+                  </div>
+                ) : null}
+                {hasWareHistory && histWares ? (
+                  <div className={styles.graphSection}>
+                    <div className={styles.graphTitle}>Prices (wares)</div>
+                    <div className={styles.chartBody}>
+                      <HistoryChart data={histWares} fill variant="tv" yMinZero />
+                    </div>
+                  </div>
+                ) : null}
+                {!hasAccountHistory && !hasWareHistory ? (
+                  <div className={styles.graphEmpty}>No history yet.</div>
+                ) : null}
+              </div>
+            </div>
+          ) : (
+            <AdvertBoard portalRef={rootRef} />
+          )}
+        </div>
+
+        <div className={styles.rightStrip}>
+          <TvGoblinFloater />
+        </div>
+
+        <div className={styles.tickers}>
+          {marketErr ? <div className={styles.error}>Backend: {marketErr}</div> : null}
+          {showMessages ? (
+            <Tickertape
+              items={market!.messages}
+              speedPxPerSec={40}
+              variant="light"
+              heightIn={1.15}
+            />
+          ) : null}
+          {showAccounts ? (
+            <Tickertape
+              items={market!.accounts}
+              speedPxPerSec={55}
+              variant="light"
+              heightIn={1.15}
+            />
+          ) : null}
+          {showWares ? (
+            <WaresTickertape wares={market!.wares} speedPxPerSec={70} heightIn={1.15} />
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}

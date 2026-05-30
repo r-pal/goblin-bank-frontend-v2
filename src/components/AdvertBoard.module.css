@@ -1,0 +1,48 @@
+.root {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.image,
+.imageFade {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  transition: opacity 280ms ease;
+  opacity: 1;
+}
+
+.imageFade {
+  opacity: 0.25;
+}
+
+.fullscreen {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: var(--tv-ticker-band, 3.45in);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgba(6, 4, 18, 0.72);
+}
+
+html[data-theme="day"] .fullscreen {
+  background: rgba(15, 40, 28, 0.78);
+}
+
+.fullscreen .image,
+.fullscreen .imageFade {
+  object-position: center;
+}

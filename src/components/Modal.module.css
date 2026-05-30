@@ -1,0 +1,68 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+}
+
+.backdropBtn {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  width: min(900px, 96vw);
+  max-height: min(90vh, 900px);
+  border-radius: 18px;
+  background: var(--panel);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+}
+
+html[data-theme="day"] .card {
+  border-color: var(--border-gold);
+  box-shadow: 0 0 24px rgba(232, 197, 71, 0.2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="day"] .header {
+  border-bottom-color: var(--border-gold);
+}
+
+.title {
+  font-size: 18px;
+}
+
+.close {
+  font: inherit;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+html[data-theme="day"] .close {
+  background: rgba(15, 61, 40, 0.55);
+  border-color: var(--border-gold);
+  color: var(--gold-pale);
+}
+
+.body {
+  padding: 12px;
+}
+

@@ -1,0 +1,176 @@
+.root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  /* Max ticker stack: 3 bands × 1.15in (see Tickertape heightIn) */
+  --tv-ticker-band: 3.45in;
+}
+
+/* CRT scanlines — full TV area, stops above ticker stack */
+html[data-theme="night"] .root::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: var(--tv-ticker-band);
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.42;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.18) 0px,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  background-size: 100% 4px;
+  mix-blend-mode: multiply;
+}
+
+/* Vaporwave perspective grid — floor meets top of ticker stack */
+html[data-theme="night"] .root::after {
+  content: "";
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: var(--tv-ticker-band);
+  height: calc(100% - var(--tv-ticker-band));
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.34;
+  transform: perspective(380px) rotateX(74deg);
+  transform-origin: center bottom;
+  background-image:
+    linear-gradient(90deg, rgba(255, 45, 160, 0.9) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(61, 245, 255, 0.6) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: linear-gradient(to top, black 0%, black 78%, transparent 100%);
+}
+
+.p5 {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.shell {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  /* Left advert dominates (~62%), right strip for p5 (~38%) */
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  gap: 0;
+  padding: 0;
+}
+
+.leftPanel {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px 8px 18px;
+}
+
+.leftPanel > * {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.rightStrip {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+  position: relative;
+  min-height: 0;
+  overflow: visible;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.tickers {
+  grid-column: 1 / 3;
+  grid-row: 2 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.35);
+}
+
+.error {
+  padding: 8px 14px;
+  background: #8b1020;
+  color: #fff;
+  font-size: clamp(16px, 2vmin, 22px);
+  font-weight: 600;
+}
+
+.graphOverlay {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border-radius: 2px;
+  background: rgba(6, 12, 32, 0.88);
+  border: 10px solid #ffffff;
+  backdrop-filter: blur(8px);
+}
+
+html[data-theme="night"] .graphOverlay {
+  background: rgba(18, 6, 36, 0.88);
+  border-color: #ffe8f8;
+  box-shadow: 0 0 24px rgba(255, 45, 160, 0.3), inset 0 0 20px rgba(61, 245, 255, 0.06);
+}
+
+html[data-theme="day"] .graphOverlay {
+  background: rgba(15, 61, 40, 0.9);
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 20px rgba(232, 197, 71, 0.28);
+}
+
+.graphStack {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.2vmin, 20px);
+}
+
+.graphSection {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chartBody {
+  flex: 1;
+  min-height: 0;
+}
+
+.graphTitle {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.8vmin, 42px);
+  font-weight: 600;
+  opacity: 0.95;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.graphEmpty {
+  font-size: clamp(18px, 2.2vmin, 28px);
+  opacity: 0.85;
+}
