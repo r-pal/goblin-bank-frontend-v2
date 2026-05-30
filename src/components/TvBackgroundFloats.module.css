@@ -13,17 +13,23 @@
   will-change: transform;
 }
 
-.floatImg {
-  display: block;
+.floatArt {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  opacity: 0.55;
+  background: var(--tv-sprite-tint);
+  background-size: 240% 240%;
+  animation: tvSpriteTintShift 11s ease-in-out infinite;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  opacity: 0.72;
   filter: var(--goblin-glow);
   pointer-events: none;
-  user-select: none;
 }
 
-html[data-theme="day"] .floatImg {
-  opacity: 0.48;
+html[data-theme="day"] .floatArt {
+  opacity: 0.65;
 }

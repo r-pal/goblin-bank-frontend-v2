@@ -60,13 +60,13 @@ html[data-theme="night"] .contentLight {
 }
 
 html[data-theme="night"] .trendUp {
-  color: #5dffb8;
-  text-shadow: 0 0 8px rgba(93, 255, 184, 0.6);
+  color: #3dff7a;
+  text-shadow: 0 0 8px rgba(61, 255, 122, 0.65);
 }
 
 html[data-theme="night"] .trendDown {
-  color: #ff5c8a;
-  text-shadow: 0 0 8px rgba(255, 92, 138, 0.6);
+  color: #ff4b4b;
+  text-shadow: 0 0 8px rgba(255, 75, 75, 0.65);
 }
 
 html[data-theme="night"] .trendFlat {
@@ -131,12 +131,12 @@ html[data-theme="night"] .trendFlat {
 }
 
 .trendUp {
-  color: #3dff7a;
+  color: #22c55e;
   font-size: 0.85em;
 }
 
 .trendDown {
-  color: #ff4b4b;
+  color: #ef4444;
   font-size: 0.85em;
 }
 
@@ -146,40 +146,42 @@ html[data-theme="night"] .trendFlat {
 }
 
 html[data-theme="day"] .light {
-  background: linear-gradient(180deg, #f5e8c4 0%, #e8c547 100%);
-  color: var(--green-deep);
-  border-top-color: rgba(201, 162, 39, 0.75);
+  background: linear-gradient(180deg, #ffffff 0%, #effffa 45%, #e5ecf4 100%);
+  color: var(--day-purple);
+  border-top-color: rgba(195, 190, 247, 0.75);
+  box-shadow: inset 0 0 32px rgba(255, 255, 255, 0.55);
 }
 
 html[data-theme="day"] .dark {
-  background: linear-gradient(180deg, #1d6b45 0%, #0f3d28 100%);
-  color: var(--gold-pale);
-  border-top-color: rgba(232, 197, 71, 0.45);
-  box-shadow: inset 0 0 20px rgba(232, 197, 71, 0.08);
+  background: linear-gradient(180deg, #c3bef7 0%, #8a4fff 55%, #8a4fff 100%);
+  color: var(--day-white);
+  border-top-color: rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 28px rgba(195, 190, 247, 0.35);
 }
 
 html[data-theme="day"] .contentLight {
-  color: var(--green-deep);
-  text-shadow: none;
+  color: var(--day-purple);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.65);
 }
 
 html[data-theme="day"] .contentDark {
-  color: var(--gold-pale);
-  text-shadow: 0 0 8px rgba(232, 197, 71, 0.35);
+  color: var(--day-white);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.45), 0 0 8px rgba(195, 190, 247, 0.4);
 }
 
 html[data-theme="day"] .trendUp {
-  color: #2d8a4e;
-  text-shadow: none;
+  color: #16a34a;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.55);
 }
 
 html[data-theme="day"] .trendDown {
-  color: #a83232;
-  text-shadow: none;
+  color: #dc2626;
+  text-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
 }
 
 html[data-theme="day"] .trendFlat {
-  color: #6b8f6e;
+  color: var(--day-sky);
+  text-shadow: 0 0 6px rgba(229, 236, 244, 0.5);
 }
 
 @keyframes scroll {

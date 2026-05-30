@@ -26,9 +26,9 @@
 html[data-theme="day"] .button {
   font-family: var(--font-display);
   border-color: var(--border-gold);
-  background: rgba(15, 61, 40, 0.65);
+  background: rgba(138, 79, 255, 0.72);
   color: var(--gold-pale);
-  box-shadow: 0 0 12px rgba(232, 197, 71, 0.25);
+  box-shadow: 0 0 12px rgba(195, 190, 247, 0.3);
 }
 
 html[data-theme="night"] .button {

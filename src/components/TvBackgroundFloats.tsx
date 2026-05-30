@@ -99,11 +99,12 @@ export function TvBackgroundFloats() {
             transform: `translate3d(${s.x}px, ${s.y}px, 0) rotate(${s.rot}rad)`,
           }}
         >
-          <img
-            className={styles.floatImg}
-            src={publicAssetSrc(s.url)}
-            alt=""
-            draggable={false}
+          <div
+            className={styles.floatArt}
+            style={{
+              WebkitMaskImage: `url("${publicAssetSrc(s.url)}")`,
+              maskImage: `url("${publicAssetSrc(s.url)}")`,
+            }}
           />
         </div>
       ))}

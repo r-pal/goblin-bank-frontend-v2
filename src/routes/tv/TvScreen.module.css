@@ -127,9 +127,13 @@ html[data-theme="night"] .graphOverlay {
 }
 
 html[data-theme="day"] .graphOverlay {
-  background: rgba(15, 61, 40, 0.9);
-  border-color: var(--gold-bright);
-  box-shadow: 0 0 20px rgba(232, 197, 71, 0.28);
+  background: rgba(138, 79, 255, 0.9);
+  border-color: var(--day-white);
+  box-shadow: 0 0 20px rgba(195, 190, 247, 0.35);
+}
+
+html[data-theme="day"] .tickers {
+  box-shadow: 0 -8px 36px rgba(138, 79, 255, 0.35);
 }
 
 .graphStack {
