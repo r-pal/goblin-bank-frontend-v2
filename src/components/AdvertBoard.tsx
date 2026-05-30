@@ -51,7 +51,7 @@ export function AdvertBoard() {
 
   if (urls.length === 0) {
     return (
-      <div className={styles.root} aria-label="Adverts">
+      <div className={styles.root} aria-label="Panels">
         <p className={styles.empty}>
           No adverts in <code>public/assets/adverts/</code>. Add images and run{" "}
           <code>npm run sync:assets</code>.
@@ -63,7 +63,7 @@ export function AdvertBoard() {
   const imageClass = fade ? styles.imageFade : styles.image;
 
   return (
-    <div className={styles.root} aria-label="Adverts">
+    <div className={styles.root} aria-label="Panels">
       <img
         key={currentUrl}
         className={imageClass}

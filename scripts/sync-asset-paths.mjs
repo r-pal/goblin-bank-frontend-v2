@@ -11,7 +11,7 @@ const TARGETS = [
     exportName: "TV_FLOAT_URLS",
   },
   {
-    subdir: "assets/adverts",
+    subdir: "assets/panels",
     outFile: "src/constants/advertPaths.ts",
     exportName: "ADVERT_URLS",
   },
