@@ -3,10 +3,12 @@ import { client } from "../../api/client";
 import type { HistoryResponse, Ware } from "../../api/types";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Modal } from "../../components/Modal";
+import { useToast } from "./toast/useToast";
 
 type NewWareRow = { name: string; price: string };
 
 export function OfficeMarket() {
+  const { showToast } = useToast();
   const [wares, setWares] = useState<Ware[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -120,6 +122,7 @@ export function OfficeMarket() {
                       try {
                         await client.patchWare(w.id, { name: d.name, price });
                         await load();
+                        showToast(`${d.name.trim()} saved (Ǥ${price.toLocaleString()})`);
                       } finally {
                         setBusy(false);
                       }
@@ -140,10 +143,12 @@ export function OfficeMarket() {
                     type="button"
                     disabled={busy}
                     onClick={async () => {
+                      const label = d.name.trim() || w.name;
                       setBusy(true);
                       try {
                         await client.deleteWare(w.id);
                         await load();
+                        showToast(`${label} deleted`);
                       } finally {
                         setBusy(false);
                       }
@@ -247,6 +252,12 @@ export function OfficeMarket() {
                 }
                 setNewRows([{ name: "", price: "" }]);
                 await load();
+                if (rowsToAdd.length === 1) {
+                  const r = rowsToAdd[0]!;
+                  showToast(`${r.name} created (Ǥ${r.price.toLocaleString()})`);
+                } else {
+                  showToast(`Created ${rowsToAdd.length} wares`);
+                }
               } finally {
                 setBusy(false);
               }

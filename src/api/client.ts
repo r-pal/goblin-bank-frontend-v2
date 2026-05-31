@@ -62,6 +62,7 @@ export const client = {
     api<{ ok: true }>(`/api/messages/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
   getHistoryAccounts: () => api<HistoryResponse>("/api/history/accounts"),
+  getHistoryInterestRates: () => api<HistoryResponse>("/api/history/interest-rates"),
   getHistoryWares: () => api<HistoryResponse>("/api/history/wares"),
 
   postAdminReset: (secret: string) =>

@@ -113,12 +113,14 @@ html[data-theme="night"] .root::after {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
+  /* Clear fixed TvGraphToggle (top-left) so first chart title is visible */
+  padding: 46px 12px 10px 12px;
   border-radius: 2px;
   background: rgba(6, 12, 32, 0.88);
   border: 8px solid #ffffff;
   backdrop-filter: blur(8px);
   overflow: hidden;
+  --graph-title-bg: rgba(6, 12, 32, 0.94);
 }
 
 html[data-theme="night"] .graphOverlay {
@@ -131,6 +133,7 @@ html[data-theme="day"] .graphOverlay {
   background: rgba(255, 255, 255, 0.92);
   border-color: var(--day-pink);
   box-shadow: 0 0 20px rgba(255, 183, 195, 0.35);
+  --graph-title-bg: rgba(255, 255, 255, 0.96);
 }
 
 html[data-theme="day"] .tickers {
@@ -140,34 +143,47 @@ html[data-theme="day"] .tickers {
 .graphStack {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: clamp(6px, 0.8vmin, 14px);
+  display: flex;
+  flex-direction: column;
+  padding-top: 2px;
 }
 
 .graphSection {
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.chartBody {
   flex: 1;
   min-height: 0;
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.chartBody {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
 .graphTitle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  margin: 0;
+  padding: 4px 8px 10px;
   font-family: var(--font-display);
   font-size: clamp(18px, 2vmin, 32px);
   font-weight: 600;
-  opacity: 0.95;
-  margin-bottom: 4px;
-  flex-shrink: 0;
+  opacity: 1;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  line-height: 1.1;
+  line-height: 1.15;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--graph-title-bg) 0%,
+    var(--graph-title-bg) 72%,
+    transparent 100%
+  );
 }
 
 .graphEmpty {

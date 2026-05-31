@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { HistoryResponse } from "../api/types";
+import type { HistoryPoint, HistoryResponse } from "../api/types";
 import styles from "./HistoryChart.module.css";
 
 type Props = {
@@ -20,6 +20,12 @@ type Props = {
   variant?: "default" | "tv";
   /** Pin Y axis minimum to 0 (e.g. ware prices). Account balances may be negative. */
   yMinZero?: boolean;
+  /** Appended to Y-axis ticks and tooltip values (e.g. `%`). */
+  valueSuffix?: string;
+  /** TV charts: hide when another chart already shows the same series labels. */
+  showLegend?: boolean;
+  /** TV legend placement (bottom leaves room for section title overlay). */
+  legendPosition?: "top" | "bottom";
 };
 
 type ChartRow = {
@@ -30,6 +36,25 @@ type ChartRow = {
 function parseTime(iso: string): number {
   const ms = new Date(iso).getTime();
   return Number.isFinite(ms) ? ms : NaN;
+}
+
+/** Recharts needs ≥2 points per line; live-only hovels often have one. */
+function ensureMinTwoPoints(points: HistoryPoint[]): HistoryPoint[] {
+  if (points.length >= 2) return points;
+  if (points.length === 0) return points;
+  const p = points[0]!;
+  const ms = parseTime(p.t);
+  const earlier = Number.isFinite(ms) ? new Date(ms - 1000).toISOString() : p.t;
+  return [{ t: earlier, v: p.v }, p];
+}
+
+function prepareHistoryForChart(data: HistoryResponse): HistoryResponse {
+  return {
+    series: data.series.map((s) => ({
+      ...s,
+      points: ensureMinTwoPoints(s.points),
+    })),
+  };
 }
 
 function toChartData(data: HistoryResponse): ChartRow[] {
@@ -52,7 +77,7 @@ function toChartData(data: HistoryResponse): ChartRow[] {
 
       const existing = map.get(p.t);
       const row: ChartRow = existing ?? { elapsed: 0, tIso: p.t };
-      row[s.label] = p.v;
+      row[s.key] = p.v;
       map.set(p.t, row);
     }
   }
@@ -151,12 +176,29 @@ export function HistoryChart({
   fill = false,
   variant = "default",
   yMinZero = false,
+  valueSuffix = "",
+  showLegend = true,
+  legendPosition = "bottom",
 }: Props) {
   const isTv = variant === "tv";
   const { probeRef, fontSize: tvFont } = useTvChartFontSize(isTv);
 
-  const chartData = useMemo(() => toChartData(data), [data]);
-  const labels = useMemo(() => data.series.map((s) => s.label), [data.series]);
+  const series = useMemo(() => prepareHistoryForChart(data).series, [data]);
+  const chartData = useMemo(() => toChartData({ series }), [series]);
+
+  const endDotRowByKey = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of series) {
+      for (let i = chartData.length - 1; i >= 0; i--) {
+        const v = chartData[i]![s.key];
+        if (typeof v === "number" && Number.isFinite(v)) {
+          m.set(s.key, i);
+          break;
+        }
+      }
+    }
+    return m;
+  }, [chartData, series]);
 
   const maxElapsed = useMemo(
     () => (chartData.length ? Math.max(...chartData.map((r) => r.elapsed)) : 0),
@@ -171,12 +213,14 @@ export function HistoryChart({
   const tickFont = isTv ? tvFont : 12;
   const yWidth = isTv ? Math.round(tvFont * 3.8) : 60;
   const strokeWidth = isTv ? 4.5 : 2;
-  const manySeries = labels.length > 3;
+  const manySeries = series.length > 3;
   const legendFont = isTv && manySeries ? Math.max(18, Math.round(tvFont * 0.52)) : tickFont;
   const legendRowH = isTv ? Math.round(legendFont * 1.15) : 22;
-  const legendRows = isTv ? Math.ceil(labels.length / 3) : 1;
+  const legendRows = isTv ? Math.ceil(series.length / 3) : 1;
   const legendHeight = isTv ? Math.min(96, 8 + legendRows * legendRowH) : 36;
-  const legendOnTop = isTv;
+  const legendOnTop = isTv && legendPosition === "top";
+  const drawLegend = isTv && showLegend;
+  const tvTitleBand = isTv ? Math.round(tvFont * 1.35) : 0;
 
   const rootStyle = fill ? undefined : { height };
   const rootClass = fill ? `${styles.fill} ${styles.root}` : undefined;
@@ -192,9 +236,20 @@ export function HistoryChart({
         <LineChart
           data={chartData}
           margin={{
-            top: legendOnTop ? legendHeight + 10 : isTv ? 12 : 8,
+            top:
+              (drawLegend && legendOnTop ? legendHeight + 10 : isTv ? 12 : 8) +
+              (isTv ? tvTitleBand : 0),
             right: isTv ? 16 : 12,
-            bottom: legendOnTop ? (isTv ? 16 : 8) : isTv ? legendHeight + 12 : 8,
+            bottom:
+              drawLegend && !legendOnTop
+                ? legendHeight + 12
+                : drawLegend && legendOnTop
+                  ? isTv
+                    ? 16
+                    : 8
+                  : isTv
+                    ? 12
+                    : 8,
             left: isTv ? 8 : 4,
           }}
         >
@@ -204,18 +259,30 @@ export function HistoryChart({
             domain={[0, maxElapsed]}
             scale="linear"
             allowDataOverflow
-            ticks={xTicks}
-            tick={{ fill: "var(--text)", fontSize: tickFont, fontFamily: "var(--font-display)" }}
+            ticks={isTv ? [] : xTicks}
+            tick={
+              isTv
+                ? false
+                : { fill: "var(--text)", fontSize: tickFont, fontFamily: "var(--font-display)" }
+            }
             tickFormatter={formatElapsed}
+            axisLine={!isTv}
+            tickLine={!isTv}
             padding={{ left: 0, right: 0 }}
           />
           <YAxis
             width={yWidth}
             domain={yMinZero ? [0, "auto"] : ["auto", "auto"]}
-            tick={{ fill: "var(--text)", fontSize: tickFont, fontFamily: "var(--font-display)" }}
+            tick={{
+              fill: "var(--text)",
+              fontSize: tickFont,
+              fontFamily: "var(--font-display)",
+            }}
+            tickFormatter={(v) => `${v}${valueSuffix}`}
           />
           <Tooltip
             labelFormatter={(elapsed) => `T+${formatElapsed(Number(elapsed))}`}
+            formatter={(value: number) => [`${value}${valueSuffix}`, ""]}
             contentStyle={{
               background: "rgba(0,0,0,0.85)",
               border: "1px solid rgba(255,255,255,0.25)",
@@ -225,7 +292,7 @@ export function HistoryChart({
               fontFamily: "var(--font-body)",
             }}
           />
-          {isTv ? (
+          {drawLegend ? (
             <Legend
               verticalAlign={legendOnTop ? "top" : "bottom"}
               align="center"
@@ -239,16 +306,42 @@ export function HistoryChart({
                 lineHeight: 1.15,
                 paddingTop: legendOnTop ? 0 : 6,
                 paddingBottom: legendOnTop ? 4 : 0,
+                maxHeight: legendHeight,
+                overflow: "hidden",
               }}
             />
           ) : null}
-          {labels.map((label, i) => (
+          {series.map((s, i) => (
             <Line
-              key={label}
-              name={label}
+              key={s.key}
+              name={s.label}
               type="monotone"
-              dataKey={label}
-              dot={false}
+              dataKey={s.key}
+              connectNulls
+              dot={
+                isTv
+                  ? (dotProps) => {
+                      const key = String(dotProps.dataKey ?? "");
+                      if (dotProps.index !== endDotRowByKey.get(key)) {
+                        return <g />;
+                      }
+                      if (dotProps.cx == null || dotProps.cy == null) {
+                        return <g />;
+                      }
+                      const r = Math.max(5, Math.round(tvFont * 0.14));
+                      return (
+                        <circle
+                          cx={dotProps.cx}
+                          cy={dotProps.cy}
+                          r={r}
+                          fill={dotProps.stroke}
+                          stroke="var(--text)"
+                          strokeWidth={1}
+                        />
+                      );
+                    }
+                  : false
+              }
               strokeWidth={strokeWidth}
               stroke={COLORS[i % COLORS.length]}
             />

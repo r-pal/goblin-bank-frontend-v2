@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { OfficeNav } from "./OfficeNav";
 import { isOfficeAuthed } from "./auth";
+import { ToastProvider } from "./toast/ToastProvider";
 
 export function OfficeLayout() {
   const loc = useLocation();
@@ -10,10 +11,12 @@ export function OfficeLayout() {
   if (!authed && !isLogin) return <Navigate to="/office/login" replace />;
 
   return (
-    <div>
-      {!isLogin ? <OfficeNav /> : null}
-      <Outlet />
-    </div>
+    <ToastProvider>
+      <div>
+        {!isLogin ? <OfficeNav /> : null}
+        <Outlet />
+      </div>
+    </ToastProvider>
   );
 }
 

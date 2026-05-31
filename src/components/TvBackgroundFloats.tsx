@@ -23,7 +23,7 @@ function createSprites(urls: readonly string[], width: number, height: number): 
     y: Math.random() * height,
     vx: (Math.random() - 0.5) * 0.44,
     vy: (Math.random() - 0.5) * 0.36,
-    size: 56 + Math.random() * 130,
+    size: 112 + Math.random() * 260,
     rot: Math.random() * Math.PI * 2,
     vr: (Math.random() - 0.5) * 0.01,
     url: urls[i % urls.length]!,

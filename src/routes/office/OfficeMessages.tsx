@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { client } from "../../api/client";
 import type { Message } from "../../api/types";
+import { useToast } from "./toast/useToast";
 
 export function OfficeMessages() {
+  const { showToast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -58,6 +60,7 @@ export function OfficeMessages() {
               await client.postMessage(text);
               setNewText("");
               await load();
+              showToast("Message added");
             } finally {
               setBusy(false);
             }
@@ -122,6 +125,7 @@ export function OfficeMessages() {
                       try {
                         await client.patchMessage(m.id, text);
                         await load();
+                        showToast("Message saved");
                       } finally {
                         setBusy(false);
                       }
@@ -146,6 +150,7 @@ export function OfficeMessages() {
                       try {
                         await client.deleteMessage(m.id);
                         await load();
+                        showToast("Message deleted");
                       } finally {
                         setBusy(false);
                       }

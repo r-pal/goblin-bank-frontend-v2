@@ -3,13 +3,16 @@ import { client } from "../../api/client";
 import type { Account, HistoryResponse } from "../../api/types";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Modal } from "../../components/Modal";
+import { interestHistoryHasPoints, mergeLiveInterestRates } from "../../utils/mergeLiveHistory";
 import { verifySnivellSecret } from "./auth";
+import { useToast } from "./toast/useToast";
 
 function fmtCoins(v: number): string {
   return `Ǥ${v.toLocaleString()}`;
 }
 
 export function OfficeBank() {
+  const { showToast } = useToast();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -17,6 +20,8 @@ export function OfficeBank() {
   const [rateBySlug, setRateBySlug] = useState<Record<string, string>>({});
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistoryResponse | null>(null);
+  const [showInterestHistory, setShowInterestHistory] = useState(false);
+  const [interestHistory, setInterestHistory] = useState<HistoryResponse | null>(null);
   const [showReset, setShowReset] = useState(false);
   const [resetSecret, setResetSecret] = useState("");
   const [resetError, setResetError] = useState<string | null>(null);
@@ -43,6 +48,11 @@ export function OfficeBank() {
 
   const rows = useMemo(() => accounts, [accounts]);
 
+  const interestHistoryLive = useMemo(
+    () => (interestHistory ? mergeLiveInterestRates(interestHistory, accounts) : null),
+    [interestHistory, accounts],
+  );
+
   return (
     <div style={{ padding: 12 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -67,7 +77,28 @@ export function OfficeBank() {
               color: "var(--text)",
             }}
           >
-            History graph
+            Balance history
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              setShowInterestHistory(true);
+              try {
+                setInterestHistory(await client.getHistoryInterestRates());
+              } catch {
+                setInterestHistory(null);
+              }
+            }}
+            style={{
+              font: "inherit",
+              borderRadius: 10,
+              padding: "6px 10px",
+              border: "1px solid rgba(255,255,255,0.22)",
+              background: "rgba(0,0,0,0.22)",
+              color: "var(--text)",
+            }}
+          >
+            Interest rates
           </button>
           <button
             type="button"
@@ -141,6 +172,8 @@ export function OfficeBank() {
                           await client.postCoinChange(a.hovelSlug, amount);
                           setDeltaBySlug((p) => ({ ...p, [a.hovelSlug]: "" }));
                           await load();
+                          const sign = amount > 0 ? "+" : "";
+                          showToast(`${a.name}: ${sign}${amount.toLocaleString()} coins applied`);
                         } finally {
                           setBusyKey(null);
                         }
@@ -184,6 +217,7 @@ export function OfficeBank() {
                         try {
                           await client.patchInterestRate(a.hovelSlug, next);
                           await load();
+                          showToast(`${a.name}: interest rate set to ${next}%`);
                         } finally {
                           setBusyKey(null);
                         }
@@ -212,8 +246,18 @@ export function OfficeBank() {
       </div>
 
       {showHistory ? (
-        <Modal title="Accounts history" onClose={() => setShowHistory(false)}>
-          {history ? <HistoryChart data={history} height={520} /> : <div>No data.</div>}
+        <Modal title="Account balances" onClose={() => setShowHistory(false)}>
+          {history ? <HistoryChart data={history} height={520} /> : <div>No data yet.</div>}
+        </Modal>
+      ) : null}
+
+      {showInterestHistory ? (
+        <Modal title="Interest rates" onClose={() => setShowInterestHistory(false)}>
+          {interestHistoryLive && interestHistoryHasPoints(interestHistory, accounts) ? (
+            <HistoryChart data={interestHistoryLive} height={520} yMinZero valueSuffix="%" />
+          ) : (
+            <div>No rate data yet.</div>
+          )}
         </Modal>
       ) : null}
 
@@ -287,6 +331,7 @@ export function OfficeBank() {
                   setShowReset(false);
                   setResetSecret("");
                   await load();
+                  showToast("Database reset — default accounts restored at zero");
                 } catch (e) {
                   const msg = e instanceof Error ? e.message : String(e);
                   setResetError(msg.includes("403") || msg.includes("invalid") ? "Wrong secret." : msg);
