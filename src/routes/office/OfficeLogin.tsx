@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { setOfficeAuthed } from "./auth";
+import { authenticateOffice, defaultOfficePath, setOfficeSession } from "./auth";
 import { OfficeLoginP5 } from "./OfficeLoginP5";
 
 export function OfficeLogin() {
@@ -19,9 +19,10 @@ export function OfficeLogin() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (name === "snivell" && secret === "sssh") {
-            setOfficeAuthed(true);
-            nav("/office/bank", { replace: true });
+          const role = authenticateOffice(name, secret);
+          if (role) {
+            setOfficeSession(role);
+            nav(defaultOfficePath(role), { replace: true });
           } else {
             setError("No.");
           }
@@ -80,4 +81,3 @@ export function OfficeLogin() {
     </div>
   );
 }
-

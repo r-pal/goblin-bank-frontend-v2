@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ADVERT_URLS } from "../constants/advertPaths";
 import { isMapPanelUrl } from "../constants/mapPanel";
+import { usePublicAssetList } from "../hooks/usePublicAssetList";
 import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./AdvertBoard.module.css";
 
@@ -25,14 +25,20 @@ function pickRandomIndex(length: number, exclude: number): number {
 }
 
 export function AdvertBoard() {
-  // Exclude the fullscreen map from the rotating panel.
+  const panelUrls = usePublicAssetList("assets/panels");
+
   const urls = useMemo(
-    () => shuffle(ADVERT_URLS.filter((u) => !isMapPanelUrl(u))),
-    [],
+    () => shuffle(panelUrls.filter((u) => !isMapPanelUrl(u))),
+    [panelUrls],
   );
+
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(false);
   const currentUrl = urls[idx] ?? "";
+
+  useEffect(() => {
+    setIdx(0);
+  }, [urls]);
 
   useEffect(() => {
     if (urls.length <= 1) return;
@@ -50,8 +56,8 @@ export function AdvertBoard() {
     return (
       <div className={styles.root} aria-label="Panels">
         <p className={styles.empty}>
-          No adverts in <code>public/assets/adverts/</code>. Add images and run{" "}
-          <code>npm run sync:assets</code>.
+          No images in <code>public/assets/panels/</code>. Drop <code>.png</code> /{" "}
+          <code>.jpg</code> files there and they will appear automatically.
         </p>
       </div>
     );

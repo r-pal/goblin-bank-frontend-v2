@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TV_FLOAT_URLS } from "../constants/tvFloatPaths";
+import { usePublicAssetList } from "../hooks/usePublicAssetList";
 import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./TvBackgroundFloats.module.css";
 
@@ -46,7 +46,7 @@ function stepSprite(s: Sprite, width: number, height: number): Sprite {
 }
 
 export function TvBackgroundFloats() {
-  const urls = TV_FLOAT_URLS;
+  const urls = usePublicAssetList("assets/tv-float");
   const layerRef = useRef<HTMLDivElement>(null);
   const boundsRef = useRef({ width: 0, height: 0 });
   const [sprites, setSprites] = useState<Sprite[]>([]);

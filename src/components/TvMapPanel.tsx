@@ -1,17 +1,24 @@
-import { MAP_PANEL_URL } from "../constants/mapPanel";
+import { findMapPanelUrl } from "../constants/mapPanel";
+import { usePublicAssetList } from "../hooks/usePublicAssetList";
 import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./TvMapPanel.module.css";
 
 export function TvMapPanel() {
-  if (!MAP_PANEL_URL) {
+  const panelUrls = usePublicAssetList("assets/panels");
+  const mapUrl = findMapPanelUrl(panelUrls);
+
+  if (!mapUrl) {
     return (
       <div className={styles.root} aria-label="Map">
-        <p className={styles.empty}>No map in <code>public/assets/panels/</code>.</p>
+        <p className={styles.empty}>
+          No map in <code>public/assets/panels/</code> (add a file matching{" "}
+          <code>MAP 2.jpg</code>).
+        </p>
       </div>
     );
   }
 
-  const src = publicAssetSrc(MAP_PANEL_URL);
+  const src = publicAssetSrc(mapUrl);
 
   return (
     <div className={styles.root} aria-label="Map">

@@ -7,8 +7,8 @@ Two routes:
 
 Adverts and media are **frontend-only** assets in `public/`:
 
-- `public/adverts/`: advert images (`.png`, `.jpg`, `.webp`, `.svg`), rotated every 10 seconds (random order)
-- `public/assets/tv-float/`: drifting background images at `/assets/tv-float/<file>` (run `npm run sync:tv-float` after add/remove)
+- `public/assets/panels/`: panel/advert images — add or remove files here; the TV screen picks them up automatically (no code changes)
+- `public/assets/tv-float/`: drifting background sprites — same drop-in behaviour
 - `public/music/`: music files (note: browsers may block autoplay until the first user interaction)
 
 ## Backend
@@ -33,8 +33,10 @@ Vite proxies `/api/*` to `http://localhost:4000` (see `vite.config.ts`).
 
 ## Office login
 
-- Name: `snivell`
-- Secret: `sssh`
+| Name | Secret | Access |
+|------|--------|--------|
+| `snivell` | `sssh` | Bank, Market, Messages |
+| `pawn` | `teehee` | Market, Messages only |
 
 ## Theme override button (testing)
 

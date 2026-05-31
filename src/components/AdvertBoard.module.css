@@ -46,7 +46,7 @@
 }
 
 html[data-theme="day"] .fullscreen {
-  background: rgba(138, 79, 255, 0.78);
+  background: rgba(255, 255, 255, 0.75);
 }
 
 .fullscreen .image,

@@ -127,48 +127,52 @@ html[data-theme="night"] #root::before {
   pointer-events: none;
   z-index: 9996;
   background: radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255, 45, 160, 0.12), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(61, 245, 255, 0.06), transparent 60%);
+    radial-gradient(ellipse 60% 40% at 20% 20%, #1324840f, transparent 60%);
 }
 
-/* —— Day / white · mint · sky · lavender · purple —— */
+/* —— Day / white · mint · sage · stone · peach · pink —— */
 html[data-theme="day"] {
-  --day-white: #ffffff;
-  --day-mint: #effffa;
-  --day-sky: #e5ecf4;
-  --day-lavender: #c3bef7;
-  --day-purple: #8a4fff;
+  --day-white: #ffa9ff;
+  --day-mint: #bcf4de;
+  --day-sage: #cde5d7;
+  --day-stone: #ded6d1;
+  --day-peach: #eec6ca;
+  --day-pink: #ffb7c3;
+  --day-ink: #3a4540;
 
   /* Legacy aliases used elsewhere */
-  --green-deep: var(--day-purple);
-  --green-mid: var(--day-lavender);
-  --green-light: var(--day-sky);
-  --gold: var(--day-purple);
-  --gold-bright: var(--day-lavender);
+  --green-deep: var(--day-ink);
+  --green-mid: #5c6f66;
+  --green-light: var(--day-mint);
+  --gold: var(--day-peach);
+  --gold-bright: var(--day-pink);
   --gold-pale: var(--day-white);
 
-  --bg: var(--day-purple);
+  --bg: var(--day-white);
   --bg-gradient: linear-gradient(
     180deg,
     var(--day-white) 0%,
-    var(--day-mint) 22%,
-    var(--day-sky) 48%,
-    var(--day-lavender) 74%,
-    var(--day-purple) 100%
+    var(--day-white) 12%,
+    var(--day-mint) 28%,
+    var(--day-sage) 38%,
+    var(--day-stone) 58%,
+    var(--day-peach) 70%,
+    var(--day-pink) 100%
   );
-  --text: var(--day-white);
-  --panel: rgba(138, 79, 255, 0.9);
-  --accent: var(--day-purple);
-  --border-gold: rgba(195, 190, 247, 0.65);
-  --text-glow: 0 0 12px rgba(255, 255, 255, 0.45), 0 0 20px rgba(195, 190, 247, 0.35);
+  --text: var(--day-ink);
+  --panel: rgba(255, 255, 255, 0.88);
+  --accent: var(--day-pink);
+  --border-gold: rgba(255, 183, 195, 0.55);
+  --text-glow: 0 0 10px rgba(255, 255, 255, 0.6), 0 0 14px rgba(188, 244, 222, 0.35);
   --goblin-tint: linear-gradient(
     165deg,
     var(--day-white) 0%,
-    var(--day-mint) 25%,
-    var(--day-lavender) 58%,
-    var(--day-purple) 100%
+    var(--day-mint) 28%,
+    var(--day-peach) 62%,
+    var(--day-pink) 100%
   );
-  --goblin-glow: drop-shadow(0 0 14px rgba(195, 190, 247, 0.55))
-    drop-shadow(0 0 22px rgba(138, 79, 255, 0.45));
+  --goblin-glow: drop-shadow(0 0 14px rgba(255, 183, 195, 0.5))
+    drop-shadow(0 0 20px rgba(188, 244, 222, 0.4));
 }
 
 html[data-theme="day"] body {
@@ -183,7 +187,7 @@ html[data-theme="day"] .font-display {
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: var(--gold-pale);
+  color: var(--day-ink);
 }
 
 html[data-theme="day"] input,
@@ -206,19 +210,19 @@ html[data-theme="day"] body::before {
   inset: 0;
   pointer-events: none;
   z-index: 9998;
-  opacity: 0.35;
+  opacity: 0.28;
   background:
     linear-gradient(
       158deg,
       transparent 38%,
-      rgba(255, 255, 255, 0.35) 48%,
-      rgba(239, 255, 250, 0.2) 56%,
+      rgba(255, 255, 255, 0.5) 48%,
+      rgba(188, 244, 222, 0.15) 56%,
       transparent 68%
     ),
     linear-gradient(
       172deg,
       transparent 42%,
-      rgba(195, 190, 247, 0.18) 52%,
+      rgba(255, 183, 195, 0.12) 52%,
       transparent 64%
     );
   mix-blend-mode: soft-light;
@@ -231,8 +235,8 @@ html[data-theme="day"] #root::before {
   pointer-events: none;
   z-index: 9996;
   background:
-    radial-gradient(ellipse 55% 40% at 62% 18%, rgba(255, 255, 255, 0.45), transparent 62%),
-    radial-gradient(ellipse 45% 35% at 28% 22%, rgba(239, 255, 250, 0.35), transparent 58%),
-    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(138, 79, 255, 0.28), transparent 70%),
-    radial-gradient(ellipse 70% 30% at 50% 88%, rgba(195, 190, 247, 0.32), transparent 65%);
+    radial-gradient(ellipse 55% 40% at 62% 18%, rgba(255, 255, 255, 0.55), transparent 62%),
+    radial-gradient(ellipse 45% 35% at 28% 22%, rgba(188, 244, 222, 0.28), transparent 58%),
+    radial-gradient(ellipse 90% 50% at 50% 100%, rgba(238, 198, 202, 0.22), transparent 70%),
+    radial-gradient(ellipse 70% 30% at 50% 88%, rgba(255, 183, 195, 0.2), transparent 65%);
 }

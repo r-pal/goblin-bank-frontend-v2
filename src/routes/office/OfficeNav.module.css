@@ -31,18 +31,18 @@
 
 html[data-theme="day"] .bar {
   border-bottom: 1px solid var(--border-gold);
-  box-shadow: 0 4px 20px rgba(195, 190, 247, 0.15);
+  box-shadow: 0 4px 20px rgba(188, 244, 222, 0.2);
 }
 
 html[data-theme="day"] .link[aria-current="page"] {
-  background: rgba(195, 190, 247, 0.35);
-  color: var(--gold-pale);
+  background: rgba(255, 183, 195, 0.35);
+  color: var(--green-deep);
 }
 
 html[data-theme="day"] .logout {
   border-color: var(--border-gold);
-  background: rgba(138, 79, 255, 0.65);
-  color: var(--gold-pale);
+  background: rgba(188, 244, 222, 0.45);
+  color: var(--green-deep);
 }
 
 .logout {

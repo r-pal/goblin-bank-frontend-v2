@@ -13,6 +13,7 @@ import { TvMapPanel } from "../../components/TvMapPanel";
 import { WaresTickertape } from "../../components/WaresTickertape";
 import { TvBackgroundP5 } from "../../components/TvBackgroundP5";
 import { TvGoblinFloater } from "../../components/TvGoblinFloater";
+import { allMarketAccountsZero } from "../../utils/parseMarketAccountBalance";
 import styles from "./TvScreen.module.css";
 
 const MARKET_POLL_MS = 5_000;
@@ -96,8 +97,11 @@ export function TvScreen() {
   };
 
   const showMessages = (market?.messages?.length ?? 0) > 0;
-  const showAccounts = (market?.accounts?.length ?? 0) > 0;
+  const showAccounts =
+    (market?.accounts?.length ?? 0) > 0 &&
+    !allMarketAccountsZero(market?.accounts ?? []);
   const showWares = (market?.wares?.length ?? 0) > 0;
+  const showTickers = showMessages || showAccounts || showWares;
 
   const hasAccountHistory = (histAccounts?.series ?? []).some((s) => s.points.length > 0);
   const hasWareHistory = (histWares?.series ?? []).some((s) => s.points.length > 0);
@@ -151,6 +155,7 @@ export function TvScreen() {
           <TvGoblinFloater />
         </div>
 
+        {showTickers || marketErr ? (
         <div className={styles.tickers}>
           {marketErr ? <div className={styles.error}>Backend: {marketErr}</div> : null}
           {showMessages ? (
@@ -173,6 +178,7 @@ export function TvScreen() {
             <WaresTickertape wares={market!.wares} speedPxPerSec={70} heightIn={1.15} />
           ) : null}
         </div>
+        ) : null}
       </div>
     </div>
   );

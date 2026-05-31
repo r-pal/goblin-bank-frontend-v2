@@ -63,5 +63,11 @@ export const client = {
 
   getHistoryAccounts: () => api<HistoryResponse>("/api/history/accounts"),
   getHistoryWares: () => api<HistoryResponse>("/api/history/wares"),
+
+  postAdminReset: (secret: string) =>
+    api<{ ok: true }>("/api/admin/reset", {
+      method: "POST",
+      body: JSON.stringify({ secret }),
+    }),
 };
 

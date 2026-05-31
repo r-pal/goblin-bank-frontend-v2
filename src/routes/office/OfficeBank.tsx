@@ -3,6 +3,7 @@ import { client } from "../../api/client";
 import type { Account, HistoryResponse } from "../../api/types";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Modal } from "../../components/Modal";
+import { verifySnivellSecret } from "./auth";
 
 function fmtCoins(v: number): string {
   return `Ǥ${v.toLocaleString()}`;
@@ -16,6 +17,10 @@ export function OfficeBank() {
   const [rateBySlug, setRateBySlug] = useState<Record<string, string>>({});
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistoryResponse | null>(null);
+  const [showReset, setShowReset] = useState(false);
+  const [resetSecret, setResetSecret] = useState("");
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetBusy, setResetBusy] = useState(false);
 
   const load = async () => {
     try {
@@ -40,29 +45,49 @@ export function OfficeBank() {
 
   return (
     <div style={{ padding: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <h1 style={{ marginTop: 0, marginBottom: 10 }}>Bank</h1>
-        <button
-          type="button"
-          onClick={async () => {
-            setShowHistory(true);
-            try {
-              setHistory(await client.getHistoryAccounts());
-            } catch {
-              setHistory(null);
-            }
-          }}
-          style={{
-            font: "inherit",
-            borderRadius: 10,
-            padding: "6px 10px",
-            border: "1px solid rgba(255,255,255,0.22)",
-            background: "rgba(0,0,0,0.22)",
-            color: "var(--text)",
-          }}
-        >
-          History graph
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <button
+            type="button"
+            onClick={async () => {
+              setShowHistory(true);
+              try {
+                setHistory(await client.getHistoryAccounts());
+              } catch {
+                setHistory(null);
+              }
+            }}
+            style={{
+              font: "inherit",
+              borderRadius: 10,
+              padding: "6px 10px",
+              border: "1px solid rgba(255,255,255,0.22)",
+              background: "rgba(0,0,0,0.22)",
+              color: "var(--text)",
+            }}
+          >
+            History graph
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setResetSecret("");
+              setResetError(null);
+              setShowReset(true);
+            }}
+            style={{
+              font: "inherit",
+              borderRadius: 10,
+              padding: "6px 10px",
+              border: "1px solid rgba(255,80,80,0.45)",
+              background: "rgba(120,20,20,0.35)",
+              color: "var(--text)",
+            }}
+          >
+            Reset all
+          </button>
+        </div>
       </div>
 
       {err ? (
@@ -189,6 +214,99 @@ export function OfficeBank() {
       {showHistory ? (
         <Modal title="Accounts history" onClose={() => setShowHistory(false)}>
           {history ? <HistoryChart data={history} height={520} /> : <div>No data.</div>}
+        </Modal>
+      ) : null}
+
+      {showReset ? (
+        <Modal
+          title="Reset database"
+          onClose={() => {
+            if (resetBusy) return;
+            setShowReset(false);
+            setResetSecret("");
+            setResetError(null);
+          }}
+        >
+          <p style={{ marginTop: 0, lineHeight: 1.45 }}>
+            This wipes all accounts, wares, messages, and history, then re-creates the default
+            hovel accounts at zero balance. It cannot be undone.
+          </p>
+          <label style={{ display: "grid", gap: 6, marginBottom: 12 }}>
+            <span>snivell&apos;s secret</span>
+            <input
+              type="password"
+              value={resetSecret}
+              autoComplete="off"
+              disabled={resetBusy}
+              onChange={(e) => {
+                setResetSecret(e.target.value);
+                setResetError(null);
+              }}
+              style={{
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid rgba(0,0,0,0.2)",
+              }}
+            />
+          </label>
+          {resetError ? (
+            <div style={{ marginBottom: 10, color: "var(--accent)" }}>{resetError}</div>
+          ) : null}
+          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              disabled={resetBusy}
+              onClick={() => {
+                setShowReset(false);
+                setResetSecret("");
+                setResetError(null);
+              }}
+              style={{
+                font: "inherit",
+                borderRadius: 10,
+                padding: "8px 12px",
+                border: "1px solid rgba(255,255,255,0.22)",
+                background: "rgba(0,0,0,0.22)",
+                color: "var(--text)",
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={resetBusy || resetSecret.length === 0}
+              onClick={async () => {
+                if (!verifySnivellSecret(resetSecret)) {
+                  setResetError("Wrong secret.");
+                  return;
+                }
+                setResetBusy(true);
+                setResetError(null);
+                try {
+                  await client.postAdminReset(resetSecret);
+                  setShowReset(false);
+                  setResetSecret("");
+                  await load();
+                } catch (e) {
+                  const msg = e instanceof Error ? e.message : String(e);
+                  setResetError(msg.includes("403") || msg.includes("invalid") ? "Wrong secret." : msg);
+                } finally {
+                  setResetBusy(false);
+                }
+              }}
+              style={{
+                font: "inherit",
+                borderRadius: 10,
+                padding: "8px 12px",
+                border: "1px solid rgba(255,80,80,0.45)",
+                background: "rgba(120,20,20,0.45)",
+                color: "var(--text)",
+                opacity: resetBusy || resetSecret.length === 0 ? 0.6 : 1,
+              }}
+            >
+              {resetBusy ? "Resetting…" : "Wipe & reset"}
+            </button>
+          </div>
         </Modal>
       ) : null}
     </div>
