@@ -52,6 +52,8 @@ html[data-theme="day"] .logout {
   border-radius: 10px;
   padding: 6px 10px;
   font: inherit;
+  /* Clear fixed theme toggle (top-right) */
+  margin-right: 5rem;
 }
 
 html[data-theme="night"] .bar {
