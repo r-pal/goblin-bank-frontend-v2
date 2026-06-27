@@ -7,6 +7,30 @@
   border-top: 3px solid rgba(255, 255, 255, 0.35);
 }
 
+.compact {
+  border-top-width: 2px;
+}
+
+.compact .contentLight {
+  font-size: clamp(17px, 2.1vmin, 32px);
+  letter-spacing: 0.1em;
+  padding: 0 16px;
+}
+
+.compact .contentDark {
+  font-size: clamp(16px, 1.9vmin, 29px);
+  letter-spacing: 0.08em;
+  padding: 0 16px;
+}
+
+.compact .sep {
+  padding: 0 5px;
+}
+
+.compact .segment {
+  gap: 6px;
+}
+
 .measure {
   position: absolute;
   left: 0;

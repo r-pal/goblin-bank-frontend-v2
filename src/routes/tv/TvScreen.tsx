@@ -25,6 +25,8 @@ import styles from "./TvScreen.module.css";
 const TV_POLL_MS = 5_000;
 const AUTO_PANEL_MS = 30_000;
 const GRAPH_CYCLE_MS = 15_000;
+/** Half of the original 1.15in TV ticker band height. */
+const TV_TICKER_HEIGHT_IN = 0.575;
 
 type GraphKind = "coin" | "interest" | "wares";
 
@@ -299,7 +301,7 @@ export function TvScreen() {
               items={market!.messages}
               speedPxPerSec={40}
               variant="light"
-              heightIn={1.15}
+              heightIn={TV_TICKER_HEIGHT_IN}
             />
           ) : null}
           {showAccounts ? (
@@ -307,11 +309,11 @@ export function TvScreen() {
               items={market!.accounts}
               speedPxPerSec={55}
               variant="light"
-              heightIn={1.15}
+              heightIn={TV_TICKER_HEIGHT_IN}
             />
           ) : null}
           {showWares ? (
-            <WaresTickertape wares={market!.wares} speedPxPerSec={70} heightIn={1.15} />
+            <WaresTickertape wares={market!.wares} speedPxPerSec={70} heightIn={TV_TICKER_HEIGHT_IN} />
           ) : null}
         </div>
         ) : null}

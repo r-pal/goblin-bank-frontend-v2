@@ -3,8 +3,8 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  /* Max ticker stack: 3 bands × 1.15in (see Tickertape heightIn) */
-  --tv-ticker-band: 3.45in;
+  /* Max ticker stack: 3 bands × 0.575in (see TV_TICKER_HEIGHT_IN) */
+  --tv-ticker-band: 1.725in;
 }
 
 /* CRT scanlines — full TV area, stops above ticker stack */

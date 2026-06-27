@@ -13,6 +13,7 @@ export function Tickertape({ items, heightIn = 1, speedPxPerSec, variant = "dark
   const containerRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLSpanElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const compact = heightIn < 0.8;
 
   const unitText = useMemo(() => items.join("    ✦    "), [items]);
   const filledText = useTickerFilledText(containerRef, measureRef, unitText);
@@ -21,7 +22,9 @@ export function Tickertape({ items, heightIn = 1, speedPxPerSec, variant = "dark
   if (items.length === 0) return null;
 
   const containerClass =
-    variant === "light" ? `${styles.container} ${styles.light}` : `${styles.container} ${styles.dark}`;
+    variant === "light"
+      ? `${styles.container} ${styles.light}${compact ? ` ${styles.compact}` : ""}`
+      : `${styles.container} ${styles.dark}${compact ? ` ${styles.compact}` : ""}`;
   const contentClass =
     variant === "light" ? `${styles.content} ${styles.contentLight}` : `${styles.content} ${styles.contentDark}`;
 

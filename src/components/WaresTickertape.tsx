@@ -90,12 +90,13 @@ export function WaresTickertape({ wares, heightIn = 1, speedPxPerSec }: Props) {
 
   if (wares.length === 0) return null;
 
+  const compact = heightIn < 0.8;
   const contentClass = `${styles.content} ${styles.contentDark} ${styles.waresTrack}`;
 
   return (
     <div
       ref={containerRef}
-      className={`${styles.container} ${styles.dark}`}
+      className={`${styles.container} ${styles.dark}${compact ? ` ${styles.compact}` : ""}`}
       style={{ height: `${heightIn}in` }}
     >
       <div ref={measureRef} className={`${contentClass} ${styles.measure}`} aria-hidden>
