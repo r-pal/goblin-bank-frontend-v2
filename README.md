@@ -13,8 +13,6 @@ Adverts and media are **frontend-only** assets in `public/`:
 
 ## Backend
 
-In `/Users/robertpallot/Desktop/coding/bank-v2/goblin-bank-backend`:
-
 ```bash
 npm install
 npm run dev
