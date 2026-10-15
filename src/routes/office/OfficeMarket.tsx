@@ -1,17 +1,23 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { client } from "../../api/client";
 import type { HistoryResponse, Ware } from "../../api/types";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Modal } from "../../components/Modal";
+import { omitKey } from "../../utils/omitKey";
+import { parseWholeNumber } from "../../utils/parseWholeNumber";
+import { toErrorMessage } from "../../utils/toErrorMessage";
 import { useToast } from "./toast/useToast";
 
 type NewWareRow = { name: string; price: string };
+
+const PRICE_HINT = "a name and a whole number of coins (0 or more)";
 
 export function OfficeMarket() {
   const { showToast } = useToast();
   const [wares, setWares] = useState<Ware[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Only rows the user has edited and not yet saved; other rows show server values.
   const [draftById, setDraftById] = useState<Record<string, { name: string; price: string }>>({});
   const [newRows, setNewRows] = useState<NewWareRow[]>([{ name: "", price: "" }]);
 
@@ -22,14 +28,9 @@ export function OfficeMarket() {
     try {
       const res = await client.getWares();
       setWares(res.wares);
-      setDraftById((prev) => {
-        const next = { ...prev };
-        for (const w of res.wares) next[w.id] = { name: w.name, price: String(w.priceCoins) };
-        return next;
-      });
       setErr(null);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      setErr(toErrorMessage(e));
     }
   };
 
@@ -37,7 +38,7 @@ export function OfficeMarket() {
     void load();
   }, []);
 
-  const rows = useMemo(() => wares, [wares]);
+  const rows = wares;
 
   return (
     <div style={{ padding: 12 }}>
@@ -115,14 +116,20 @@ export function OfficeMarket() {
                     type="button"
                     disabled={busy}
                     onClick={async () => {
-                      const price = Number(d.price);
-                      if (!Number.isInteger(price) || price < 0 || d.name.trim().length === 0)
+                      const name = d.name.trim();
+                      const price = parseWholeNumber(d.price, { min: 0 });
+                      if (!name || price === null) {
+                        showToast(`Each ware needs ${PRICE_HINT}`, "error");
                         return;
+                      }
                       setBusy(true);
                       try {
-                        await client.patchWare(w.id, { name: d.name, price });
+                        await client.patchWare(w.id, { name, price });
+                        setDraftById((p) => omitKey(p, w.id));
                         await load();
-                        showToast(`${d.name.trim()} saved (Ǥ${price.toLocaleString()})`);
+                        showToast(`${name} saved (Ǥ${price.toLocaleString()})`);
+                      } catch (e) {
+                        showToast(`Couldn't save ${name}: ${toErrorMessage(e)}`, "error");
                       } finally {
                         setBusy(false);
                       }
@@ -147,8 +154,11 @@ export function OfficeMarket() {
                       setBusy(true);
                       try {
                         await client.deleteWare(w.id);
+                        setDraftById((p) => omitKey(p, w.id));
                         await load();
                         showToast(`${label} deleted`);
+                      } catch (e) {
+                        showToast(`Couldn't delete ${label}: ${toErrorMessage(e)}`, "error");
                       } finally {
                         setBusy(false);
                       }
@@ -241,24 +251,40 @@ export function OfficeMarket() {
             type="button"
             disabled={busy}
             onClick={async () => {
-              const rowsToAdd = newRows
-                .map((r) => ({ name: r.name.trim(), price: Number(r.price) }))
-                .filter((r) => r.name.length > 0 && Number.isInteger(r.price) && r.price >= 0);
-              if (rowsToAdd.length === 0) return;
+              const filled = newRows.filter((r) => r.name.trim() || r.price.trim());
+              if (filled.length === 0) return;
+              const rowsToAdd = filled.flatMap((r) => {
+                const name = r.name.trim();
+                const price = parseWholeNumber(r.price, { min: 0 });
+                return name && price !== null ? [{ row: r, name, price }] : [];
+              });
+              if (rowsToAdd.length < filled.length) {
+                showToast(`Each new ware needs ${PRICE_HINT}`, "error");
+                return;
+              }
+
               setBusy(true);
+              const created = new Set<NewWareRow>();
               try {
                 for (const r of rowsToAdd) {
                   await client.postWare(r.name, r.price);
+                  created.add(r.row);
                 }
                 setNewRows([{ name: "", price: "" }]);
-                await load();
                 if (rowsToAdd.length === 1) {
                   const r = rowsToAdd[0]!;
                   showToast(`${r.name} created (Ǥ${r.price.toLocaleString()})`);
                 } else {
                   showToast(`Created ${rowsToAdd.length} wares`);
                 }
+              } catch (e) {
+                // Drop rows that were created so a retry doesn't duplicate them.
+                const remaining = newRows.filter((r) => !created.has(r));
+                setNewRows(remaining.length > 0 ? remaining : [{ name: "", price: "" }]);
+                const failed = rowsToAdd.find((r) => !created.has(r.row))!;
+                showToast(`Couldn't create ${failed.name}: ${toErrorMessage(e)}`, "error");
               } finally {
+                await load();
                 setBusy(false);
               }
             }}

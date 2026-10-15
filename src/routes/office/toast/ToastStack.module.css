@@ -33,6 +33,10 @@ html[data-theme="day"] .toast {
   box-shadow: 0 8px 24px rgba(58, 69, 64, 0.15);
 }
 
+html .toast.error {
+  border: 2px solid var(--accent);
+}
+
 @keyframes toastIn {
   from {
     opacity: 0;

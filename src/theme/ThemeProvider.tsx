@@ -1,7 +1,8 @@
 import React, { createContext, useEffect, useMemo, useState } from "react";
+import { getScheduledMode, type ThemeMode } from "./themeSchedule";
 
+export type { ThemeMode };
 export type ThemeOverride = "auto" | "day" | "night";
-export type ThemeMode = "day" | "night";
 
 type ThemeContextValue = {
   override: ThemeOverride;
@@ -12,11 +13,6 @@ type ThemeContextValue = {
 const STORAGE_KEY = "goblin-theme-override";
 
 export const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-
-function getScheduledMode(now: Date): ThemeMode {
-  const hour = now.getHours();
-  return hour >= 8 && hour < 20 ? "day" : "night";
-}
 
 function modeFromOverride(override: ThemeOverride): ThemeMode {
   if (override === "day") return "day";

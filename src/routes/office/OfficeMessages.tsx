@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { client } from "../../api/client";
 import type { Message } from "../../api/types";
+import { omitKey } from "../../utils/omitKey";
+import { toErrorMessage } from "../../utils/toErrorMessage";
 import { useToast } from "./toast/useToast";
 
 export function OfficeMessages() {
@@ -9,20 +11,16 @@ export function OfficeMessages() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [newText, setNewText] = useState("");
+  // Only messages the user has edited and not yet saved; others show server text.
   const [draftById, setDraftById] = useState<Record<string, string>>({});
 
   const load = async () => {
     try {
       const res = await client.getMessages();
       setMessages(res.messages);
-      setDraftById((prev) => {
-        const next = { ...prev };
-        for (const m of res.messages) next[m.id] = m.text;
-        return next;
-      });
       setErr(null);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      setErr(toErrorMessage(e));
     }
   };
 
@@ -30,7 +28,7 @@ export function OfficeMessages() {
     void load();
   }, []);
 
-  const rows = useMemo(() => messages, [messages]);
+  const rows = messages;
 
   return (
     <div style={{ padding: 12 }}>
@@ -61,6 +59,8 @@ export function OfficeMessages() {
               setNewText("");
               await load();
               showToast("Message added");
+            } catch (e) {
+              showToast(`Couldn't add the message: ${toErrorMessage(e)}`, "error");
             } finally {
               setBusy(false);
             }
@@ -124,8 +124,11 @@ export function OfficeMessages() {
                       setBusy(true);
                       try {
                         await client.patchMessage(m.id, text);
+                        setDraftById((p) => omitKey(p, m.id));
                         await load();
                         showToast("Message saved");
+                      } catch (e) {
+                        showToast(`Couldn't save the message: ${toErrorMessage(e)}`, "error");
                       } finally {
                         setBusy(false);
                       }
@@ -149,8 +152,11 @@ export function OfficeMessages() {
                       setBusy(true);
                       try {
                         await client.deleteMessage(m.id);
+                        setDraftById((p) => omitKey(p, m.id));
                         await load();
                         showToast("Message deleted");
+                      } catch (e) {
+                        showToast(`Couldn't delete the message: ${toErrorMessage(e)}`, "error");
                       } finally {
                         setBusy(false);
                       }

@@ -20,6 +20,7 @@ import {
   mergeLiveInterestRates,
 } from "../../utils/mergeLiveHistory";
 import { allMarketAccountsZero } from "../../utils/parseMarketAccountBalance";
+import { toErrorMessage } from "../../utils/toErrorMessage";
 import { GRAPH_CYCLE_MS } from "../../constants/tvTiming";
 import { useAutoCycle } from "../../hooks/useAutoCycle";
 import { buildAutoSteps, type GraphKind } from "./autoSteps";
@@ -68,7 +69,7 @@ export function TvScreen() {
           setMarketErr(null);
         }
       } catch (e) {
-        if (!cancelled) setMarketErr(e instanceof Error ? e.message : String(e));
+        if (!cancelled) setMarketErr(toErrorMessage(e));
       }
     };
 

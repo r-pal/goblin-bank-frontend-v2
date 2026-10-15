@@ -4,6 +4,9 @@ import type { Account, HistoryResponse } from "../../api/types";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Modal } from "../../components/Modal";
 import { interestHistoryHasPoints, mergeLiveInterestRates } from "../../utils/mergeLiveHistory";
+import { omitKey } from "../../utils/omitKey";
+import { parseWholeNumber } from "../../utils/parseWholeNumber";
+import { toErrorMessage } from "../../utils/toErrorMessage";
 import { verifySnivellSecret } from "./auth";
 import { useToast } from "./toast/useToast";
 
@@ -16,6 +19,7 @@ export function OfficeBank() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  // Only hovels the user has edited and not yet saved; others show server values.
   const [deltaBySlug, setDeltaBySlug] = useState<Record<string, string>>({});
   const [rateBySlug, setRateBySlug] = useState<Record<string, string>>({});
   const [showHistory, setShowHistory] = useState(false);
@@ -32,13 +36,8 @@ export function OfficeBank() {
       const res = await client.getAccounts();
       setAccounts(res.accounts);
       setErr(null);
-      setRateBySlug((prev) => {
-        const next = { ...prev };
-        for (const a of res.accounts) next[a.hovelSlug] = String(a.interestRatePercent);
-        return next;
-      });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
+      setErr(toErrorMessage(e));
     }
   };
 
@@ -46,7 +45,7 @@ export function OfficeBank() {
     void load();
   }, []);
 
-  const rows = useMemo(() => accounts, [accounts]);
+  const rows = accounts;
 
   const interestHistoryLive = useMemo(
     () => (interestHistory ? mergeLiveInterestRates(interestHistory, accounts) : null),
@@ -165,15 +164,20 @@ export function OfficeBank() {
                       type="button"
                       disabled={busy}
                       onClick={async () => {
-                        const amount = Number(deltaRaw);
-                        if (!Number.isInteger(amount) || amount === 0) return;
+                        const amount = parseWholeNumber(deltaRaw, { allowZero: false });
+                        if (amount === null) {
+                          showToast("Enter a whole number of coins to add or remove (not 0)", "error");
+                          return;
+                        }
                         setBusyKey(a.hovelSlug);
                         try {
                           await client.postCoinChange(a.hovelSlug, amount);
-                          setDeltaBySlug((p) => ({ ...p, [a.hovelSlug]: "" }));
+                          setDeltaBySlug((p) => omitKey(p, a.hovelSlug));
                           await load();
                           const sign = amount > 0 ? "+" : "";
                           showToast(`${a.name}: ${sign}${amount.toLocaleString()} coins applied`);
+                        } catch (e) {
+                          showToast(`Couldn't apply coins to ${a.name}: ${toErrorMessage(e)}`, "error");
                         } finally {
                           setBusyKey(null);
                         }
@@ -211,13 +215,22 @@ export function OfficeBank() {
                       type="button"
                       disabled={busy}
                       onClick={async () => {
-                        const next = Number(rateRaw);
-                        if (!Number.isInteger(next) || next < 0) return;
+                        const next = parseWholeNumber(rateRaw, { min: 0 });
+                        if (next === null) {
+                          showToast("Interest rate must be a whole number, 0 or more", "error");
+                          return;
+                        }
                         setBusyKey(a.hovelSlug);
                         try {
                           await client.patchInterestRate(a.hovelSlug, next);
+                          setRateBySlug((p) => omitKey(p, a.hovelSlug));
                           await load();
                           showToast(`${a.name}: interest rate set to ${next}%`);
+                        } catch (e) {
+                          showToast(
+                            `Couldn't set ${a.name}'s interest rate: ${toErrorMessage(e)}`,
+                            "error",
+                          );
                         } finally {
                           setBusyKey(null);
                         }
@@ -330,10 +343,12 @@ export function OfficeBank() {
                   await client.postAdminReset(resetSecret);
                   setShowReset(false);
                   setResetSecret("");
+                  setDeltaBySlug({});
+                  setRateBySlug({});
                   await load();
                   showToast("Database reset — default accounts restored at zero");
                 } catch (e) {
-                  const msg = e instanceof Error ? e.message : String(e);
+                  const msg = toErrorMessage(e);
                   setResetError(msg.includes("403") || msg.includes("invalid") ? "Wrong secret." : msg);
                 } finally {
                   setResetBusy(false);

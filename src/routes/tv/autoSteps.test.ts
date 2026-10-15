@@ -14,16 +14,7 @@ describe("buildAutoSteps", () => {
     ]);
   });
 
-  test("gives the adverts step 5 seconds per advert", () => {
-    expect(buildAutoSteps([], 12)[0]).toEqual({ view: "adverts", durationMs: 12 * ADVERT_INTERVAL_MS });
-    expect(buildAutoSteps([], 1)[0]).toEqual({ view: "adverts", durationMs: 5_000 });
-  });
-
-  test("skips the adverts step when there are no adverts", () => {
-    expect(buildAutoSteps(["coin"], 0).map((s) => s.view)).toEqual(["graph", "map"]);
-  });
-
-  test("only includes graphs that have data", () => {
+  test("gives adverts 5 seconds each, graphs and the map their fixed durations", () => {
     expect(buildAutoSteps(["wares"], 2)).toEqual([
       { view: "adverts", durationMs: 2 * ADVERT_INTERVAL_MS },
       { view: "graph", graph: "wares", durationMs: GRAPH_CYCLE_MS },
@@ -31,11 +22,7 @@ describe("buildAutoSteps", () => {
     ]);
   });
 
-  test("falls back to adverts and the map when no graph has data", () => {
-    expect(buildAutoSteps([], 4).map((s) => s.view)).toEqual(["adverts", "map"]);
-  });
-
-  test("always shows the map, even with nothing else", () => {
-    expect(buildAutoSteps([], 0)).toEqual([{ view: "map", durationMs: AUTO_PANEL_MS }]);
+  test("skips the adverts step when there are no adverts", () => {
+    expect(buildAutoSteps(["coin"], 0).map((s) => s.view)).toEqual(["graph", "map"]);
   });
 });

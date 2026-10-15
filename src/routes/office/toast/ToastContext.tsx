@@ -1,7 +1,9 @@
 import { createContext } from "react";
 
+export type ToastTone = "info" | "error";
+
 export type ToastContextValue = {
-  showToast: (message: string) => void;
+  showToast: (message: string, tone?: ToastTone) => void;
 };
 
 export const ToastContext = createContext<ToastContextValue | null>(null);
