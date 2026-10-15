@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { client } from "../../api/client";
 import type { Account, HistoryResponse, MarketResponse } from "../../api/types";
-import { AdvertBoard } from "../../components/AdvertBoard";
+import { ADVERT_INTERVAL_MS, AdvertBoard, useAdvertUrls } from "../../components/AdvertBoard";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Tickertape } from "../../components/Tickertape";
 import {
@@ -35,8 +35,11 @@ type AutoStep =
   | { view: "map"; durationMs: number }
   | { view: "graph"; graph: GraphKind; durationMs: number };
 
-function buildAutoSteps(availableGraphs: readonly GraphKind[]): AutoStep[] {
-  const steps: AutoStep[] = [{ view: "adverts", durationMs: AUTO_PANEL_MS }];
+function buildAutoSteps(availableGraphs: readonly GraphKind[], advertCount: number): AutoStep[] {
+  const steps: AutoStep[] = [];
+  if (advertCount > 0) {
+    steps.push({ view: "adverts", durationMs: advertCount * ADVERT_INTERVAL_MS });
+  }
   for (const graph of availableGraphs) {
     steps.push({ view: "graph", graph, durationMs: GRAPH_CYCLE_MS });
   }
@@ -126,22 +129,21 @@ export function TvScreen() {
   const hasInterestHistory = interestHistoryHasPoints(histInterest, liveAccounts);
   const hasWareHistory = (histWares?.series ?? []).some((s) => s.points.length > 0);
 
+  // Depends only on booleans: history objects are rebuilt on every poll, and a new
+  // array here would rebuild autoSteps and restart the auto cycle.
   const availableGraphs = useMemo(() => {
     const kinds: GraphKind[] = [];
-    if (hasAccountHistory && histAccountsLive) kinds.push("coin");
-    if (hasInterestHistory && histInterestLive) kinds.push("interest");
-    if (hasWareHistory && histWares) kinds.push("wares");
+    if (hasAccountHistory) kinds.push("coin");
+    if (hasInterestHistory) kinds.push("interest");
+    if (hasWareHistory) kinds.push("wares");
     return kinds;
-  }, [
-    hasAccountHistory,
-    histAccountsLive,
-    hasInterestHistory,
-    histInterestLive,
-    hasWareHistory,
-    histWares,
-  ]);
+  }, [hasAccountHistory, hasInterestHistory, hasWareHistory]);
 
-  const autoSteps = useMemo(() => buildAutoSteps(availableGraphs), [availableGraphs]);
+  const advertCount = useAdvertUrls().length;
+  const autoSteps = useMemo(
+    () => buildAutoSteps(availableGraphs, advertCount),
+    [availableGraphs, advertCount],
+  );
 
   const autoStep = panelMode === "auto" ? (autoSteps[autoStepIndex] ?? autoSteps[0]) : null;
 
@@ -170,33 +172,18 @@ export function TvScreen() {
     });
   }, [autoSteps.length]);
 
+  const autoStepCount = autoSteps.length;
+  const autoStepDurationMs = autoStep?.durationMs ?? AUTO_PANEL_MS;
+
   useEffect(() => {
-    if (panelMode !== "auto" || autoSteps.length === 0) return;
+    if (panelMode !== "auto" || autoStepCount === 0) return;
 
-    let cancelled = false;
-    let timeoutId = 0;
-    let index = 0;
+    const id = window.setTimeout(() => {
+      setAutoStepIndex((i) => (i + 1) % autoStepCount);
+    }, autoStepDurationMs);
 
-    const schedule = () => {
-      if (cancelled) return;
-      const step = autoSteps[index]!;
-      timeoutId = window.setTimeout(() => {
-        if (cancelled) return;
-        index = (index + 1) % autoSteps.length;
-        setAutoStepIndex(index);
-        schedule();
-      }, step.durationMs);
-    };
-
-    setAutoStepIndex(0);
-    index = 0;
-    schedule();
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-    };
-  }, [panelMode, autoSteps]);
+    return () => window.clearTimeout(id);
+  }, [panelMode, autoStepIndex, autoStepCount, autoStepDurationMs]);
 
   useEffect(() => {
     setGraphIndex((i) => {

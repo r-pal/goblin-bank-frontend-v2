@@ -4,7 +4,8 @@ import { usePublicAssetList } from "../hooks/usePublicAssetList";
 import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./AdvertBoard.module.css";
 
-const ADVERT_INTERVAL_MS = 10_000;
+/** How long each advert stays on screen. */
+export const ADVERT_INTERVAL_MS = 5_000;
 
 function shuffle<T>(items: readonly T[]): T[] {
   const out = [...items];
@@ -24,13 +25,15 @@ function pickRandomIndex(length: number, exclude: number): number {
   return next;
 }
 
-export function AdvertBoard() {
+/** Advert image URLs: every panel image except the map. */
+export function useAdvertUrls(): readonly string[] {
   const panelUrls = usePublicAssetList("assets/panels");
+  return useMemo(() => panelUrls.filter((u) => !isMapPanelUrl(u)), [panelUrls]);
+}
 
-  const urls = useMemo(
-    () => shuffle(panelUrls.filter((u) => !isMapPanelUrl(u))),
-    [panelUrls],
-  );
+export function AdvertBoard() {
+  const advertUrls = useAdvertUrls();
+  const urls = useMemo(() => shuffle(advertUrls), [advertUrls]);
 
   const [idx, setIdx] = useState(0);
   const [fade, setFade] = useState(false);
