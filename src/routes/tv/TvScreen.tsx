@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { client } from "../../api/client";
 import type { Account, HistoryResponse, MarketResponse } from "../../api/types";
-import { ADVERT_INTERVAL_MS, AdvertBoard, useAdvertUrls } from "../../components/AdvertBoard";
+import { AdvertBoard, useAdvertUrls } from "../../components/AdvertBoard";
 import { HistoryChart } from "../../components/HistoryChart";
 import { Tickertape } from "../../components/Tickertape";
 import {
@@ -20,39 +20,20 @@ import {
   mergeLiveInterestRates,
 } from "../../utils/mergeLiveHistory";
 import { allMarketAccountsZero } from "../../utils/parseMarketAccountBalance";
+import { GRAPH_CYCLE_MS } from "../../constants/tvTiming";
+import { useAutoCycle } from "../../hooks/useAutoCycle";
+import { buildAutoSteps, type GraphKind } from "./autoSteps";
 import styles from "./TvScreen.module.css";
 
 const TV_POLL_MS = 5_000;
-const AUTO_PANEL_MS = 30_000;
-const GRAPH_CYCLE_MS = 15_000;
 /** Half of the original 1.15in TV ticker band height. */
 const TV_TICKER_HEIGHT_IN = 0.575;
-
-type GraphKind = "coin" | "interest" | "wares";
-
-type AutoStep =
-  | { view: "adverts"; durationMs: number }
-  | { view: "map"; durationMs: number }
-  | { view: "graph"; graph: GraphKind; durationMs: number };
-
-function buildAutoSteps(availableGraphs: readonly GraphKind[], advertCount: number): AutoStep[] {
-  const steps: AutoStep[] = [];
-  if (advertCount > 0) {
-    steps.push({ view: "adverts", durationMs: advertCount * ADVERT_INTERVAL_MS });
-  }
-  for (const graph of availableGraphs) {
-    steps.push({ view: "graph", graph, durationMs: GRAPH_CYCLE_MS });
-  }
-  steps.push({ view: "map", durationMs: AUTO_PANEL_MS });
-  return steps;
-}
 
 export function TvScreen() {
   const [market, setMarket] = useState<MarketResponse | null>(null);
   const [marketErr, setMarketErr] = useState<string | null>(null);
 
   const [panelMode, setPanelMode] = useState<TvPanelMode>("auto");
-  const [autoStepIndex, setAutoStepIndex] = useState(0);
   const [histAccounts, setHistAccounts] = useState<HistoryResponse | null>(null);
   const [histInterest, setHistInterest] = useState<HistoryResponse | null>(null);
   const [histWares, setHistWares] = useState<HistoryResponse | null>(null);
@@ -107,7 +88,7 @@ export function TvScreen() {
 
   const onPanelModeChange = (mode: TvPanelMode) => {
     setPanelMode(mode);
-    if (mode === "auto") setAutoStepIndex(0);
+    if (mode === "auto") resetAutoCycle();
   };
 
   const showMessages = (market?.messages?.length ?? 0) > 0;
@@ -145,14 +126,10 @@ export function TvScreen() {
     [availableGraphs, advertCount],
   );
 
-  const autoStep = panelMode === "auto" ? (autoSteps[autoStepIndex] ?? autoSteps[0]) : null;
+  const { step: autoStep, reset: resetAutoCycle } = useAutoCycle(autoSteps, panelMode === "auto");
 
   const activeView: TvPanelView =
-    panelMode === "auto"
-      ? autoStep?.view === "graph"
-        ? "graph"
-        : (autoStep?.view ?? "adverts")
-      : panelMode;
+    panelMode === "auto" ? (autoStep?.view ?? "adverts") : panelMode;
 
   const showGraph = activeView === "graph";
   const showMap = activeView === "map";
@@ -164,26 +141,6 @@ export function TvScreen() {
       : panelMode === "graph"
         ? (availableGraphs[graphIndex % availableGraphs.length] ?? null)
         : null;
-
-  useEffect(() => {
-    setAutoStepIndex((i) => {
-      if (autoSteps.length === 0) return 0;
-      return i % autoSteps.length;
-    });
-  }, [autoSteps.length]);
-
-  const autoStepCount = autoSteps.length;
-  const autoStepDurationMs = autoStep?.durationMs ?? AUTO_PANEL_MS;
-
-  useEffect(() => {
-    if (panelMode !== "auto" || autoStepCount === 0) return;
-
-    const id = window.setTimeout(() => {
-      setAutoStepIndex((i) => (i + 1) % autoStepCount);
-    }, autoStepDurationMs);
-
-    return () => window.clearTimeout(id);
-  }, [panelMode, autoStepIndex, autoStepCount, autoStepDurationMs]);
 
   useEffect(() => {
     setGraphIndex((i) => {

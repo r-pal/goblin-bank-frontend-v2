@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { isMapPanelUrl } from "../constants/mapPanel";
+import { ADVERT_INTERVAL_MS } from "../constants/tvTiming";
 import { usePublicAssetList } from "../hooks/usePublicAssetList";
 import { publicAssetSrc } from "../utils/publicAssetSrc";
 import styles from "./AdvertBoard.module.css";
-
-/** How long each advert stays on screen. */
-export const ADVERT_INTERVAL_MS = 5_000;
 
 function shuffle<T>(items: readonly T[]): T[] {
   const out = [...items];
