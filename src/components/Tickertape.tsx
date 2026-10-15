@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
+import { useTickerDuration, useTickerFilledText } from "../hooks/useTickerFill";
 import styles from "./Tickertape.module.css";
-import { useTickerDuration, useTickerFilledText } from "./useTickerFill";
 
 type Props = {
   items: string[];
@@ -9,7 +9,12 @@ type Props = {
   variant?: "light" | "dark";
 };
 
-export function Tickertape({ items, heightIn = 1, speedPxPerSec, variant = "dark" }: Props) {
+export function Tickertape({
+  items,
+  heightIn = 1,
+  speedPxPerSec,
+  variant = "dark",
+}: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLSpanElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -26,7 +31,9 @@ export function Tickertape({ items, heightIn = 1, speedPxPerSec, variant = "dark
       ? `${styles.container} ${styles.light}${compact ? ` ${styles.compact}` : ""}`
       : `${styles.container} ${styles.dark}${compact ? ` ${styles.compact}` : ""}`;
   const contentClass =
-    variant === "light" ? `${styles.content} ${styles.contentLight}` : `${styles.content} ${styles.contentDark}`;
+    variant === "light"
+      ? `${styles.content} ${styles.contentLight}`
+      : `${styles.content} ${styles.contentDark}`;
 
   return (
     <div
@@ -34,7 +41,11 @@ export function Tickertape({ items, heightIn = 1, speedPxPerSec, variant = "dark
       className={containerClass}
       style={{ height: `${heightIn}in` }}
     >
-      <span ref={measureRef} className={`${contentClass} ${styles.measure}`} aria-hidden>
+      <span
+        ref={measureRef}
+        className={`${contentClass} ${styles.measure}`}
+        aria-hidden
+      >
         {unitText}
       </span>
 

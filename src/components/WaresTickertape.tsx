@@ -1,7 +1,13 @@
-import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { WareMarketItem } from "../api/types";
+import { TICKER_SEP, useTickerDuration } from "../hooks/useTickerFill";
 import styles from "./Tickertape.module.css";
-import { TICKER_SEP, useTickerDuration } from "./useTickerFill";
 
 type Props = {
   wares: WareMarketItem[];
@@ -11,7 +17,11 @@ type Props = {
 
 function WareSegment({ ware }: { ware: WareMarketItem }) {
   const trendClass =
-    ware.trend === "up" ? styles.trendUp : ware.trend === "down" ? styles.trendDown : styles.trendFlat;
+    ware.trend === "up"
+      ? styles.trendUp
+      : ware.trend === "down"
+        ? styles.trendDown
+        : styles.trendFlat;
   return (
     <span className={styles.segment}>
       <span className={trendClass} aria-hidden>
@@ -99,7 +109,11 @@ export function WaresTickertape({ wares, heightIn = 1, speedPxPerSec }: Props) {
       className={`${styles.container} ${styles.dark}${compact ? ` ${styles.compact}` : ""}`}
       style={{ height: `${heightIn}in` }}
     >
-      <div ref={measureRef} className={`${contentClass} ${styles.measure}`} aria-hidden>
+      <div
+        ref={measureRef}
+        className={`${contentClass} ${styles.measure}`}
+        aria-hidden
+      >
         {unit}
       </div>
 
